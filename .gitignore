@@ -1,1 +1,5 @@
 /dataset
+/analysis
+/__pycache__
+/.git
+*.pyc
