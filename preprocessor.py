@@ -86,6 +86,15 @@ def word_lemmatizer(data):
                     doc["lemma_paragraphs"][i][k].append(lemmatizer(word, u"NOUN")[0])
     return data
 
+def F6(s,S):
+    res=0
+    title=(S["id"].split("-",1)[1]).split("-")
+    for x in (s):
+        if x in (title):
+            res=res+1
+    res=res/len(title)
+    return res
+
 def pos_tagger():
     # May be..?
     pass
