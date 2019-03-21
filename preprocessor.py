@@ -95,6 +95,12 @@ def F6(s,S):
     res=res/len(title)
     return res
 
+def F7(s,S):
+    res=0
+    if s==S["paragraphs"][0][0] or s==S["paragraphs"][0][len(S["paragraphs"][0])-1] or s==S["paragraphs"][len(S["paragraphs"])-1][0] or s==S["paragraphs"][len(S["paragraphs"])-1][len(S["paragraphs"][len(S["paragraphs"])-1])-1]:
+        res=1
+    return res
+
 def pos_tagger():
     # May be..?
     pass
