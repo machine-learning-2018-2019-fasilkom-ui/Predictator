@@ -2,6 +2,8 @@ from data import open_dataset
 from collections import defaultdict
 from copy import deepcopy
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from spacy.lemmatizer import Lemmatizer
+from spacy.lang.id import LOOKUP
 import re
 import json
 
@@ -71,9 +73,18 @@ def word_stemmer(data):
                         doc["stemmed_paragraphs"][i][k].append(word)
     return data
 
-def lemmatizer():
-    # Skip stemmer if this step is chosen
-    pass
+def word_lemmatizer(data):
+    lemmatizer = Lemmatizer(lookup=LOOKUP)
+    for doc in data:
+        doc["lemma_paragraphs"] = []
+        for i,paragraph in enumerate(doc["stopped_paragraphs"]):
+            doc["lemma_paragraphs"].append([])
+            doc["lemma_paragraphs"][i] = []
+            for k,sentence in enumerate(paragraph):
+                doc["lemma_paragraphs"][i].append([])
+                for idx, word in enumerate(sentence):
+                    doc["lemma_paragraphs"][i][k].append(lemmatizer(word, u"NOUN")[0])
+    return data
 
 def pos_tagger():
     # May be..?
@@ -89,10 +100,14 @@ def demo():
     print("Removing StopWord")
     data = stopword_remover(data)
     print(data[1]["stopped_paragraphs"])
+    print("---------")
     print("Stemming")
     data = word_stemmer(data)
-    print("---------")
     print(data[1]["stemmed_paragraphs"])
+    print("---------")
+    print("Lemmatization")
+    data = word_lemmatizer(data)
+    print(data[1]["lemma_paragraphs"])
 
 
 if __name__ == "__main__":
