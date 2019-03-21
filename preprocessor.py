@@ -1,6 +1,8 @@
 from data import open_dataset
 from collections import defaultdict
 from copy import deepcopy
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+import re
 import json
 
 ANALYSIS_DATA_DIR = "analysis/"
@@ -40,18 +42,34 @@ def stopword_remover(data):
             stop_words.append(k)
     stop_words = set(stop_words)
     for doc in data:
-        doc["stopped_paragraph"] = []
+        doc["stopped_paragraphs"] = []
         for i,paragraph in enumerate(doc["paragraphs"]):
-            doc["stopped_paragraph"].append([])
+            doc["stopped_paragraphs"].append([])
+            doc["stopped_paragraphs"][i] = []
             for k,sentence in enumerate(paragraph):
-                doc["stopped_paragraph"][i] = [word for word in sentence
-                                                if word not in stop_words]
+                doc["stopped_paragraphs"][i].append([word for word in sentence
+                                                if word not in stop_words])
     return data
     # pass
 
-def stemmer():
+def word_stemmer(data):
     # Skip lemmatizer if this step is chosen
-    pass
+    factory = StemmerFactory()
+    stemmer = factory.create_stemmer()
+    for doc in data:
+        doc["stemmed_paragraphs"] = []
+        for i,paragraph in enumerate(doc["stopped_paragraphs"]):
+            doc["stemmed_paragraphs"].append([])
+            doc["stemmed_paragraphs"][i] = []
+            for k,sentence in enumerate(paragraph):
+                doc["stemmed_paragraphs"][i].append([])
+                for idx, word in enumerate(sentence):
+                    if re.match(r'^[a-z]*$', word) or idx==0:
+                        # only stem lower cased alphabet word and beginning of a sentence
+                        doc["stemmed_paragraphs"][i][k].append(stemmer.stem(word))
+                    else:
+                        doc["stemmed_paragraphs"][i][k].append(word)
+    return data
 
 def lemmatizer():
     # Skip stemmer if this step is chosen
@@ -66,7 +84,15 @@ def demo():
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
     print("jumlah dokumen %i"%len(data))
+    print(data[1]["paragraphs"])
+    print("---------")
+    print("Removing StopWord")
     data = stopword_remover(data)
+    print(data[1]["stopped_paragraphs"])
+    print("Stemming")
+    data = word_stemmer(data)
+    print("---------")
+    print(data[1]["stemmed_paragraphs"])
 
 
 if __name__ == "__main__":
