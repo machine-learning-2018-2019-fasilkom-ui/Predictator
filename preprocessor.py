@@ -141,6 +141,22 @@ def word_lemmatizer(data):
                     doc["lemma_paragraphs"][i][k].append(lemmatizer(word, u"NOUN")[0])
     return data
 
+def F1(s,S):
+    c=[]
+    d=[]
+    f=[]
+    flag=0
+    for m in range(len(S["paragraphs"])-1):
+        for n in range(len(S["paragraphs"][m])-1):
+            for i in range(len(S["paragraphs"])-1):
+                for j in range(len(S["paragraphs"][i])-1):
+                    if flag==0:
+                        c=list(set(c).union(list(set(s).intersection(S["paragraphs"][i][j]))))
+                        d=list(set(d).union(list(set(S["paragraphs"][i][j]).intersection(S["paragraphs"][i][j]))))
+            f.append(len(d))
+            flag=1
+    return len(c)/max(f)
+
 def F6(s,S):
     res=0
     title=(S["id"].split("-",1)[1]).split("-")
@@ -155,6 +171,42 @@ def F7(s,S):
     if s==S["paragraphs"][0][0] or s==S["paragraphs"][0][len(S["paragraphs"][0])-1] or s==S["paragraphs"][len(S["paragraphs"])-1][0] or s==S["paragraphs"][len(S["paragraphs"])-1][len(S["paragraphs"][len(S["paragraphs"])-1])-1]:
         res=1
     return res
+
+def F1_extraction(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for doc in data:
+        doc["F1"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f1=[]
+            for sentence in paragraph:
+                list_f1.append(F1(sentence,doc))
+            doc["F1"].append(list_f1)
+        doc["F1"]=flatten(doc["F1"])
+    return data
+
+def F6_extraction(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for doc in data:
+        doc["F6"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f6=[]
+            for sentence in paragraph:
+                list_f6.append(F6(sentence,doc))
+            doc["F6"].append(list_f6)
+        doc["F6"]=flatten(doc["F6"])
+    return data
+
+def F7_extraction(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for doc in data:
+        doc["F7"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f7=[]
+            for sentence in paragraph:
+                list_f7.append(F7(sentence,doc))
+            doc["F7"].append(list_f7)
+        doc["F7"]=flatten(doc["F7"])
+    return data
 
 def pos_tagger(data):
     flatten = lambda l: [item for sublist in l for item in sublist]
