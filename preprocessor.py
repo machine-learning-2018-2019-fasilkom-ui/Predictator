@@ -142,20 +142,20 @@ def word_lemmatizer(data):
     return data
 
 def F1(s,S):
-    c=[]
-    d=[]
     f=[]
-    flag=0
-    for m in range(len(S["paragraphs"])-1):
-        for n in range(len(S["paragraphs"][m])-1):
-            for i in range(len(S["paragraphs"])-1):
-                for j in range(len(S["paragraphs"][i])-1):
-                    if flag==0:
-                        c=list(set(c).union(list(set(s).intersection(S["paragraphs"][i][j]))))
-                        d=list(set(d).union(list(set(S["paragraphs"][i][j]).intersection(S["paragraphs"][i][j]))))
-            f.append(len(d))
-            flag=1
-    return len(c)/max(f)
+    flattened=[val for sublist in S["paragraphs"] for val in sublist]
+    temp=deepcopy(flattened)
+    temp.remove(s)
+    flattened2=[val for sublist in temp for val in sublist]
+    d1=list(set(s).intersection(flattened2))
+    for i in range(len(flattened)-1):
+        a=flattened[i]
+        temp=deepcopy(flattened)
+        temp.pop(i)
+        flattened2=[val for sublist in temp for val in sublist]
+        d2=list(set(a).intersection(flattened2))
+        f.append(len(d2))
+    return len(d1)/max(f)
 
 def F6(s,S):
     res=0
