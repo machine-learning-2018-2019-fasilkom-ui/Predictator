@@ -101,14 +101,27 @@ def F7(s,S):
         res=1
     return res
 
-def pos_tagger():
-    # May be..?
-    pass
+def pos_tagger(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    ct = CRFTagger()
+    ct.set_model_file('dataset/all_indo_man_tag_corpus_model.crf.tagger')
+    for category in data:
+        category['word_tag'] = []
+        for paragraph in category['paragraphs']:
+            list_tag_kalimat = []
+            for kalimat in paragraph:
+                tag_kalimat = ct.tag_sents([kalimat])
+                list_tag_kalimat.append(tag_kalimat)
+            category['word_tag'].append(list_tag_kalimat)
+        category['word_tag'] = flatten(category['word_tag'])
+    return data
 
 def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
+    print("Tag every word in paragraphs...")
+    data = pos_tagger(data)
     print("jumlah dokumen %i"%len(data))
     print(data[1]["paragraphs"])
     print("---------")
