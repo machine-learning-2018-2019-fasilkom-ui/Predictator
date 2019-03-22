@@ -119,6 +119,42 @@ def F7(s,S):
         res=1
     return res
 
+def F1_extraction(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for doc in data:
+        doc["F1"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f1=[]
+            for sentence in paragraph:
+                list_f1.append(F1(sentence,doc))
+            doc["F1"].append(list_f1)
+        doc["F1"]=flatten(doc["F1"])
+    return data
+
+def F6_extraction(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for doc in data:
+        doc["F6"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f6=[]
+            for sentence in paragraph:
+                list_f6.append(F6(sentence,doc))
+            doc["F6"].append(list_f6)
+        doc["F6"]=flatten(doc["F6"])
+    return data
+
+def F7_extraction(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for doc in data:
+        doc["F7"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f7=[]
+            for sentence in paragraph:
+                list_f7.append(F7(sentence,doc))
+            doc["F7"].append(list_f7)
+        doc["F7"]=flatten(doc["F7"])
+    return data
+
 def pos_tagger(data):
     flatten = lambda l: [item for sublist in l for item in sublist]
     ct = CRFTagger()
