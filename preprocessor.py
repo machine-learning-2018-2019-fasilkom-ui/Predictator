@@ -4,8 +4,10 @@ from copy import deepcopy
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from spacy.lemmatizer import Lemmatizer
 from spacy.lang.id import LOOKUP
+from nltk.tag import CRFTagger
 import re
 import json
+import pycrfsuite
 
 ANALYSIS_DATA_DIR = "analysis/"
 STOP_MIN_THRESHOLD = 10
