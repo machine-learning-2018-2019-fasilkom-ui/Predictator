@@ -5,6 +5,7 @@ from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from spacy.lemmatizer import Lemmatizer
 from spacy.lang.id import LOOKUP
 from nltk.tag import CRFTagger
+import numpy as np
 import re
 import json
 import pycrfsuite
@@ -13,20 +14,71 @@ ANALYSIS_DATA_DIR = "analysis/"
 STOP_MIN_THRESHOLD = 10
 STOP_MAX_THRESHOLD_PERCENTAGE = 0.999
 
-def word_frequency_counter(data):
-    word_frequency = defaultdict(int)
+def idf_counter(data):
+    document_frequency = defaultdict(int)
+    idf = defaultdict(float)
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    n_doc = len(data)
+    for i in data:
+        paragraphs = flatten(i["paragraphs"])
+        words = set(flatten(paragraphs))
+        for word in words:
+            document_frequency[word] += 1
+    for k,v in document_frequency.items():
+        idf[k] = np.log2(1.0*n_doc/v)
+    return idf
+
+def weighted_tf(data):
+    tf = []
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for i in data:
+        paragraphs = flatten(i["paragraphs"])
+        words = flatten(paragraphs)
+        doc_tf = defaultdict(float)
+        term_count = len(words)
+        for word in words:
+            doc_tf[word] += 1
+        for k,v in doc_tf.items():
+            doc_tf[k] = 1.0*v/term_count
+        tf.append(doc_tf)
+    return tf
+
+def tf_idf(data):
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    tf = weighted_tf(data)
+    idf = idf_counter(data)
+    for idx, doc in enumerate(data):
+        doc["tf_idf_score"] = []
+        for i,paragraph in enumerate(doc["paragraphs"]):
+            doc["tf_idf_score"].append([])
+            doc["tf_idf_score"][i] = []
+            for j,sentence in enumerate(paragraph):
+                doc["tf_idf_score"][i].append(0.0)
+                for word in sentence:
+                    doc["tf_idf_score"][i][j] += tf[i][word]*idf[word]
+            # Normalization
+        doc_max_tf_idf = max(flatten(doc["tf_idf_score"]))
+        for i,paragraph in enumerate(doc["paragraphs"]):
+            for j,sentence in enumerate(paragraph):
+                doc["tf_idf_score"][i][j] /= doc_max_tf_idf
+        print(doc["tf_idf_score"])
+        break
+    return data
+
+def term_frequency_counter(data):
+    term_frequency = defaultdict(int)
     flatten = lambda l: [item for sublist in l for item in sublist]
     for i in data:
         paragraphs = flatten(i["paragraphs"])
         words = flatten(paragraphs)
         for word in words:
-            word_frequency[word] += 1
-    unique_token_count = len(word_frequency.keys())
+            term_frequency[word] += 1
+    unique_token_count = len(term_frequency.keys())
     with open(ANALYSIS_DATA_DIR+"word_frequencies.json", 'w') as f:
-        for k,v in sorted(word_frequency.items(), key=lambda item: (item[1], item[0])):
+        for k,v in sorted(term_frequency.items(), key=lambda item: (item[1], item[0])):
             f.write(json.dumps({k:v}))
             f.write("\n")
-    return word_frequency
+    return term_frequency
 
 def tokenizer():
     # This step is skipped beacause the data set already tokenize
@@ -34,7 +86,7 @@ def tokenizer():
 
 def stopword_remover(data):
     stop_words = []
-    vocabulary_frequency = word_frequency_counter(data)
+    vocabulary_frequency = term_frequency_counter(data)
     n_unique_token = len(vocabulary_frequency)
     max_threshold = STOP_MAX_THRESHOLD_PERCENTAGE * n_unique_token
     sorted_word = sorted(vocabulary_frequency.items(), key=lambda item: (item[1], item[0]))
@@ -45,6 +97,7 @@ def stopword_remover(data):
         if idx >= int(max_threshold):
             stop_words.append(k)
     stop_words = set(stop_words)
+    print(len(stop_words))
     for doc in data:
         doc["stopped_paragraphs"] = []
         for i,paragraph in enumerate(doc["paragraphs"]):
@@ -122,8 +175,9 @@ def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
-    print("Tag every word in paragraphs...")
-    data = pos_tagger(data)
+    data = tf_idf(data)
+    # print("Tag every word in paragraphs...")
+    # data = pos_tagger(data)
     print("jumlah dokumen %i"%len(data))
     print(data[1]["paragraphs"])
     print("---------")
