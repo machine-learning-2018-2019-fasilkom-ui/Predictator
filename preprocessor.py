@@ -88,6 +88,22 @@ def word_lemmatizer(data):
                     doc["lemma_paragraphs"][i][k].append(lemmatizer(word, u"NOUN")[0])
     return data
 
+def F1(s,S):
+    c=[]
+    d=[]
+    f=[]
+    flag=0
+    for m in range(len(S["paragraphs"])-1):
+        for n in range(len(S["paragraphs"][m])-1):
+            for i in range(len(S["paragraphs"])-1):
+                for j in range(len(S["paragraphs"][i])-1):
+                    if flag==0:
+                        c=list(set(c).union(list(set(s).intersection(S["paragraphs"][i][j]))))
+                        d=list(set(d).union(list(set(S["paragraphs"][i][j]).intersection(S["paragraphs"][i][j]))))
+            f.append(len(d))
+            flag=1
+    return len(c)/max(f)
+
 def F6(s,S):
     res=0
     title=(S["id"].split("-",1)[1]).split("-")
