@@ -30,7 +30,7 @@ def term_frequency_counter(data):
     return term_frequency
 
 def tokenizer():
-    # This step is skipped beacause the data set already tokenize
+    # SKIPPED AS THE DATA IS ALREADY TOKENIZED
     pass
 
 def stopword_remover(data):
@@ -109,7 +109,6 @@ def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
-    data = tf_idf(data)
     # print("Tag every word in paragraphs...")
     # data = pos_tagger(data)
     print("jumlah dokumen %i"%len(data))

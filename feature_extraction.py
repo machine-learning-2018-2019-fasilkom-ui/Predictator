@@ -35,28 +35,6 @@ def weighted_tf(data):
         tf.append(doc_tf)
     return tf
 
-def tf_idf(data):
-    flatten = lambda l: [item for sublist in l for item in sublist]
-    tf = weighted_tf(data)
-    idf = idf_counter(data)
-    for idx, doc in enumerate(data):
-        doc["tf_idf_score"] = []
-        for i,paragraph in enumerate(doc["paragraphs"]):
-            doc["tf_idf_score"].append([])
-            doc["tf_idf_score"][i] = []
-            for j,sentence in enumerate(paragraph):
-                doc["tf_idf_score"][i].append(0.0)
-                for word in sentence:
-                    doc["tf_idf_score"][i][j] += tf[i][word]*idf[word]
-            # Normalization
-        doc_max_tf_idf = max(flatten(doc["tf_idf_score"]))
-        for i,paragraph in enumerate(doc["paragraphs"]):
-            for j,sentence in enumerate(paragraph):
-                doc["tf_idf_score"][i][j] /= doc_max_tf_idf
-        print(doc["tf_idf_score"])
-        break
-    return data
-
 def F1(s,S):
     f=[]
     flattened=[val for sublist in S["paragraphs"] for val in sublist]
@@ -75,6 +53,7 @@ def F1(s,S):
 
 def F6(s,S):
     res=0
+    # This need to be changed
     title=(S["id"].split("-",1)[1]).split("-")
     for x in (s):
         if x in (title):
@@ -89,6 +68,7 @@ def F7(s,S):
     return res
 
 def F1_extraction(data):
+    # similarity sentence
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F1"]=[]
@@ -100,7 +80,42 @@ def F1_extraction(data):
         doc["F1"]=flatten(doc["F1"])
     return data
 
+def F2_extraction(data):
+    # similarity sentence on paragraph level
+    pass
+
+def F3_extraction(data):
+    # Unique Formatting
+    pass
+
+def F4_extraction(data):
+    # Important cue phrases
+    # NOT EXTRACTED DUE TO LACK OF CUE PHRASES DATA
+    pass
+
+def F5_extraction(data):
+    # TF-IDF
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    tf = weighted_tf(data)
+    idf = idf_counter(data)
+    for idx, doc in enumerate(data):
+        doc["F5"] = []
+        for i,paragraph in enumerate(doc["paragraphs"]):
+            doc["F5"].append([])
+            doc["F5"][i] = []
+            for j,sentence in enumerate(paragraph):
+                doc["F5"][i].append(0.0)
+                for word in sentence:
+                    doc["F5"][i][j] += tf[i][word]*idf[word]
+            # Normalization
+        doc_max_tf_idf = max(flatten(doc["F5"]))
+        for i,paragraph in enumerate(doc["paragraphs"]):
+            for j,sentence in enumerate(paragraph):
+                doc["F5"][i][j] /= doc_max_tf_idf
+    return data
+
 def F6_extraction(data):
+    # unigram overlap sentencce with title
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F6"]=[]
@@ -113,6 +128,7 @@ def F6_extraction(data):
     return data
 
 def F7_extraction(data):
+    # Paragraph location
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F7"]=[]
@@ -124,8 +140,36 @@ def F7_extraction(data):
         doc["F7"]=flatten(doc["F7"])
     return data
 
-def demo():
+def F8_extraction(data):
+    # Trivial cue phrases
+    # NOT EXTRACTED DUE TO LACK OF PHREASES INFORMATION
     pass
+
+def F9_extraction(data):
+    # Proper NOUN Tag Ratio
+    pass
+
+def F10_extraction(data):
+    # TF-ISF
+    pass
+
+def F11_extraction(data):
+    # TextRank
+    pass
+
+def demo():
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
+    data = flatten(data)
+    data = F1_extraction(data)
+    # data = F2_extraction(data)
+    # data = F3_extraction(data)
+    data = F5_extraction(data)
+    data = F6_extraction(data)
+    data = F7_extraction(data)
+    # data = F9_extraction(data)
+    # data = F10_extraction(data)
+    # data = F11_extraction(data)
 
 if __name__ == "__main__":
     demo()
