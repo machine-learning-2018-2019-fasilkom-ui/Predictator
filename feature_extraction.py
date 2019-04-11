@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import re
 import json
+import numpy as np
 
 def idf_counter(data):
     document_frequency = defaultdict(int)
@@ -20,7 +21,28 @@ def idf_counter(data):
         idf[k] = np.log2(1.0*n_doc/v)
     return idf
 
-def weighted_tf(data):
+def isf_counter(data):
+    all_isf = []
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for idx,i in enumerate(data):
+        # all_isf.append([])
+        sentences = flatten(i["paragraphs"])
+        n_sentence = len(sentences)
+        sentence_frequency = defaultdict(int)
+        isf = defaultdict(float)
+        for sentence in sentences:
+            # print(sentence)
+            for word in set(sentence):
+                sentence_frequency[word] += 1
+            # print(sentence_frequency)
+        for k,v in sentence_frequency.items():
+            isf[k] = np.log2(1.0*n_sentence/v)
+        all_isf.append(isf)
+        # print(all_isf)
+        # break
+    return all_isf
+
+def weighted_doc_tf(data):
     tf = []
     flatten = lambda l: [item for sublist in l for item in sublist]
     for i in data:
@@ -96,7 +118,7 @@ def F4_extraction(data):
 def F5_extraction(data):
     # TF-IDF
     flatten = lambda l: [item for sublist in l for item in sublist]
-    tf = weighted_tf(data)
+    tf = weighted_doc_tf(data)
     idf = idf_counter(data)
     for idx, doc in enumerate(data):
         doc["F5"] = []
@@ -151,7 +173,25 @@ def F9_extraction(data):
 
 def F10_extraction(data):
     # TF-ISF
-    pass
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    tf = weighted_doc_tf(data)
+    isf = isf_counter(data)
+    for idx, doc in enumerate(data):
+        doc["F10"] = []
+        for i,paragraph in enumerate(doc["paragraphs"]):
+            doc["F10"].append([])
+            doc["F10"][i] = []
+            for j,sentence in enumerate(paragraph):
+                doc["F10"][i].append(0.0)
+                for word in sentence:
+                    doc["F10"][i][j] += tf[i][word]*isf[idx][word]
+            # Normalization
+        doc_max_tf_isf = max(flatten(doc["F10"]))
+
+        for i,paragraph in enumerate(doc["paragraphs"]):
+            for j,sentence in enumerate(paragraph):
+                doc["F10"][i][j] /= doc_max_tf_isf
+    return data
 
 def F11_extraction(data):
     # TextRank
@@ -168,8 +208,9 @@ def demo():
     data = F6_extraction(data)
     data = F7_extraction(data)
     # data = F9_extraction(data)
-    # data = F10_extraction(data)
+    data = F10_extraction(data)
     # data = F11_extraction(data)
+    print(data[0])
 
 if __name__ == "__main__":
     demo()
