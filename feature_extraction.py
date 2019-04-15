@@ -1,4 +1,4 @@
-from data import open_dataset
+from data import open_dataset, get_title
 from preprocessor import stopword_remover, word_stemmer, word_lemmatizer, pos_tagger
 from collections import defaultdict
 from copy import deepcopy
@@ -58,35 +58,34 @@ def weighted_doc_tf(data):
     return tf
 
 def F1(s,S):
-    f=[]
-    flattened=[val for sublist in S["paragraphs"] for val in sublist]
-    temp=deepcopy(flattened)
+    f = []
+    flattened = [val for sublist in S["paragraphs"] for val in sublist]
+    temp = deepcopy(flattened)
     temp.remove(s)
-    flattened2=[val for sublist in temp for val in sublist]
-    d1=list(set(s).intersection(flattened2))
+    flattened2 = [val for sublist in temp for val in sublist]
+    d1 = list(set(s).intersection(flattened2))
     for i in range(len(flattened)-1):
-        a=flattened[i]
-        temp=deepcopy(flattened)
+        a = flattened[i]
+        temp = deepcopy(flattened)
         temp.pop(i)
-        flattened2=[val for sublist in temp for val in sublist]
-        d2=list(set(a).intersection(flattened2))
+        flattened2 = [val for sublist in temp for val in sublist]
+        d2 = list(set(a).intersection(flattened2))
         f.append(len(d2))
-    return len(d1)/max(f)
+    return 1.0*len(d1)/max(f)
 
 def F6(s,S):
-    res=0
-    # This need to be changed
-    title=(S["id"].split("-",1)[1]).split("-")
+    res = 0
+    title = get_title(S["source"], S["source_url"])
     for x in (s):
-        if x in (title):
-            res=res+1
-    res=res/len(title)
+        if x.lower() in (title):
+            res = res+1
+    res = 1.0*res/len(title)
     return res
 
 def F7(s,S):
-    res=0
+    res = 0
     if s==S["paragraphs"][0][0] or s==S["paragraphs"][0][len(S["paragraphs"][0])-1] or s==S["paragraphs"][len(S["paragraphs"])-1][0] or s==S["paragraphs"][len(S["paragraphs"])-1][len(S["paragraphs"][len(S["paragraphs"])-1])-1]:
-        res=1
+        res = 1
     return res
 
 def F1_extraction(data):
@@ -164,7 +163,7 @@ def F7_extraction(data):
 
 def F8_extraction(data):
     # Trivial cue phrases
-    # NOT EXTRACTED DUE TO LACK OF PHREASES INFORMATION
+    # NOT EXTRACTED DUE TO LACK OF PHRASES INFORMATION
     pass
 
 def F9_extraction(data):
