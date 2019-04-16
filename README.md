@@ -11,9 +11,19 @@ Member    :
 Dataset taken from [IndoSum](https://github.com/kata-ai/indosum)
 
 ### Feature
-  TBD
+  - F1 : sentence similarity based on unigram overlap
+  - F2 : paragraph similarity based on unigram overlap (unfinished)
+  - F3 : unique formatting (unfinished)
+  - F4 : cue important phrases (not used)
+  - F5 : sum of TF-IDF (Term Frequency - Inverse Document Frequency)
+  - F6 : title unigram overlap
+  - F7 : sentence position in the paragraph
+  - F8 : cue trivial phrases (not used)
+  - F9 : proper noun word in sentence (unfinished)
+  - F10 : sum of TF-ISF (Term Frequency - Inverse Sentence Frequency)
+  - F11 : TextRank score (unfinished)
 
 ### Machine Learning Used
-  TBD
+  - Baseline (lead3) => picking the first 3 sentences of the document as summary
 
 ### Reference
