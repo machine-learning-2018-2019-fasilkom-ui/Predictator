@@ -37,6 +37,3 @@ class Evaluator:
         self._precision()
         self._recall()
         self._f1_score()
-
-    def compute_rouge(self, choosen_sentence, reference_summary):
-        pass
