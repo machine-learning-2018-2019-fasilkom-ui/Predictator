@@ -1,10 +1,12 @@
 class Lead3:
+    def __init__():
+        pass
+
     def train():
         # NO training Process
         pass
 
     def predict(document):
-        print("------")
         label = []
         sentence_counter = 0
         for paragraph in document["paragraphs"]:
