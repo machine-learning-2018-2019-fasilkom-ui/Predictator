@@ -57,7 +57,7 @@ def weighted_doc_tf(data):
         tf.append(doc_tf)
     return tf
 
-def F1(s,S):
+def f1(s,S):
     f = []
     flattened = [val for sublist in S["paragraphs"] for val in sublist]
     temp = deepcopy(flattened)
@@ -73,7 +73,7 @@ def F1(s,S):
         f.append(len(d2))
     return 1.0*len(d1)/max(f)
 
-def F6(s,S):
+def f6(s,S):
     res = 0
     title = get_title(S["source"], S["source_url"])
     for x in (s):
@@ -82,39 +82,39 @@ def F6(s,S):
     res = 1.0*res/len(title)
     return res
 
-def F7(s,S):
+def f7(s,S):
     res = 0
     if s==S["paragraphs"][0][0] or s==S["paragraphs"][0][len(S["paragraphs"][0])-1] or s==S["paragraphs"][len(S["paragraphs"])-1][0] or s==S["paragraphs"][len(S["paragraphs"])-1][len(S["paragraphs"][len(S["paragraphs"])-1])-1]:
         res = 1
     return res
 
-def F1_extraction(data):
+def f1_extraction(data):
     # similarity sentence
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
-        doc["F1"]=[]
+        doc["F1"] = []
         for paragraph in doc["paragraphs"]:
-            list_f1=[]
+            list_f1 = []
             for sentence in paragraph:
-                list_f1.append(F1(sentence,doc))
+                list_f1.append(f1(sentence,doc))
             doc["F1"].append(list_f1)
         doc["F1"]=flatten(doc["F1"])
     return data
 
-def F2_extraction(data):
+def f2_extraction(data):
     # similarity sentence on paragraph level
     pass
 
-def F3_extraction(data):
+def f3_extraction(data):
     # Unique Formatting
     pass
 
-def F4_extraction(data):
+def f4_extraction(data):
     # Important cue phrases
     # NOT EXTRACTED DUE TO LACK OF CUE PHRASES DATA
     pass
 
-def F5_extraction(data):
+def f5_extraction(data):
     # TF-IDF
     flatten = lambda l: [item for sublist in l for item in sublist]
     tf = weighted_doc_tf(data)
@@ -135,7 +135,7 @@ def F5_extraction(data):
                 doc["F5"][i][j] /= doc_max_tf_idf
     return data
 
-def F6_extraction(data):
+def f6_extraction(data):
     # unigram overlap sentencce with title
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
@@ -143,12 +143,12 @@ def F6_extraction(data):
         for paragraph in doc["paragraphs"]:
             list_f6=[]
             for sentence in paragraph:
-                list_f6.append(F6(sentence,doc))
+                list_f6.append(f6(sentence,doc))
             doc["F6"].append(list_f6)
         doc["F6"]=flatten(doc["F6"])
     return data
 
-def F7_extraction(data):
+def f7_extraction(data):
     # Paragraph location
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
@@ -156,21 +156,21 @@ def F7_extraction(data):
         for paragraph in doc["paragraphs"]:
             list_f7=[]
             for sentence in paragraph:
-                list_f7.append(F7(sentence,doc))
+                list_f7.append(f7(sentence,doc))
             doc["F7"].append(list_f7)
         doc["F7"]=flatten(doc["F7"])
     return data
 
-def F8_extraction(data):
+def f8_extraction(data):
     # Trivial cue phrases
     # NOT EXTRACTED DUE TO LACK OF PHRASES INFORMATION
     pass
 
-def F9_extraction(data):
+def f9_extraction(data):
     # Proper NOUN Tag Ratio
     pass
 
-def F10_extraction(data):
+def f10_extraction(data):
     # TF-ISF
     flatten = lambda l: [item for sublist in l for item in sublist]
     tf = weighted_doc_tf(data)
@@ -192,23 +192,35 @@ def F10_extraction(data):
                 doc["F10"][i][j] /= doc_max_tf_isf
     return data
 
-def F11_extraction(data):
+def f11_extraction(data):
     # TextRank
     pass
+
+def compute_feature(data):
+    data = f1_extraction(data)
+    # data = f2_extraction(data)
+    # data = f3_extraction(data)
+    data = f5_extraction(data)
+    data = f6_extraction(data)
+    data = f7_extraction(data)
+    # data = f9_extraction(data)
+    data = f10_extraction(data)
+    # data = f11_extraction(data)
+    return data
 
 def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
-    data = F1_extraction(data)
-    # data = F2_extraction(data)
-    # data = F3_extraction(data)
-    data = F5_extraction(data)
-    data = F6_extraction(data)
-    data = F7_extraction(data)
-    # data = F9_extraction(data)
-    data = F10_extraction(data)
-    # data = F11_extraction(data)
+    data = f1_extraction(data)
+    # data = f2_extraction(data)
+    # data = f3_extraction(data)
+    data = f5_extraction(data)
+    data = f6_extraction(data)
+    data = f7_extraction(data)
+    # data = f9_extraction(data)
+    data = f10_extraction(data)
+    # data = f11_extraction(data)
     print(data[0])
 
 if __name__ == "__main__":
