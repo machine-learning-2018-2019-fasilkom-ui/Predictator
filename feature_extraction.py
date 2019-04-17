@@ -167,8 +167,23 @@ def f8_extraction(data):
     pass
 
 def f9_extraction(data):
-    # Proper NOUN Tag Ratio
-    pass
+    #Score for sentences contains Proper Noun
+    # Must run pos_tagger() first
+    for category in data:
+        category['F9_score'] = []
+        for paragraph in category['word_tag']:
+            list_score_kalimat = []
+            for kalimat in paragraph:
+                tag_NNP = 0
+                for tag in kalimat:
+                    if tag[1]=='NNP':
+                        tag_NNP += 1
+                    else:
+                        pass
+                score = float(tag_NNP/len(kalimat))
+                list_score_kalimat.append(score)
+            category['F9_score'].append(list_score_kalimat)
+    return tagged_data
 
 def f10_extraction(data):
     # TF-ISF
@@ -195,6 +210,24 @@ def f10_extraction(data):
 def f11_extraction(data):
     # TextRank
     pass
+
+def sentence_sentrality(data):
+    #Score sentence based on overlap words with other sentences
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for category in data:
+        category['Overlap_score'] = []
+        for paragraph in category['paragraphs']:
+            list_score_overlap = []
+            for kalimat in paragraph:
+                kalimat_lain = list(category['paragraphs'])
+                kalimat_lain = flatten(kalimat_lain)
+                kalimat_lain.remove(kalimat)
+                kalimat_lain = flatten(kalimat_lain)
+                overlap = len(set(kalimat)) + len(set(kalimat_lain)) - len(set(kalimat + kalimat_lain))
+                overlap_score = float(overlap/len(set(kalimat + kalimat_lain)))
+                list_score_overlap.append(overlap_score)
+            category['Overlap_score'].append(list_score_overlap)
+    return data
 
 def compute_feature(data):
     data = f1_extraction(data)
