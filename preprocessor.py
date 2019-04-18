@@ -106,6 +106,20 @@ def pos_tagger(data):
         category['word_tag'] = flatten(category['word_tag'])
     return data
 
+def pre_processed_all(data):
+    data = pos_tagger(data)
+    data = stopword_remover(data)
+    data = word_stemmer(data)
+    data = word_lemmatizer(data)
+    return data
+
+def save_preprocessed_data(data, precomputed:False, file_dir:"analysis/precomputed_dataset.jsonl"):
+    data = data if precomputed else pre_processed_all(data)
+    with open(file_dir) as f:
+        for datum in data:
+            f.write(json.dumps(datum))
+            f.write("\n")
+
 def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]

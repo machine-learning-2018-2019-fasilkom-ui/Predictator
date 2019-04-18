@@ -271,7 +271,7 @@ def compute_feature(data):
     # data = f11_extraction(data)
     return data
 
-def save_feature(data, feature_precomputed:True, file_dir:"analysis/feature_set.json"):
+def save_feature(data, feature_precomputed:False, file_dir:"analysis/feature_set.jsonl"):
     data = data if feature_precomputed else compute_feature(data)
     selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11"]
     with open(file_dir) as f:
