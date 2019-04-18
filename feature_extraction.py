@@ -74,7 +74,7 @@ def f1(s,S):
     return 1.0*len(d1)/max(f)
 
 def f2(s,S):
-    f=[]
+    global f
     temp=deepcopy(S)
     temp["paragraphs"].pop(idx)
     flattened=[val for sublist in temp["paragraphs"] for val in sublist]
@@ -82,19 +82,26 @@ def f2(s,S):
     d1=list(set(s).intersection(flattened2))
     temp=deepcopy(S)
     flattened=[val for sublist in temp["paragraphs"] for val in sublist]
-    for j in range(len(S["paragraphs"])):
-        for i in range(len(S["paragraphs"][j])):
-            a=flattened[i]
-            temp=deepcopy(S["paragraphs"])
-            temp.pop(j)
-            flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
-            d2=list(set(a).intersection(flattened2))
-            f.append(len(d2))
-    if max(f)==0:
-        return 0
+    if flag==1:
+        f=[]
+        for j in range(len(S["paragraphs"])):
+            for i in range(len(S["paragraphs"][j])):
+                a=flattened[i]
+                temp=deepcopy(S["paragraphs"])
+                temp.pop(j)
+                flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
+                d2=list(set(a).intersection(flattened2))
+                f.append(len(d2)) 
+        if max(f)==0:
+            return 0
+        else:
+            return len(d1)/max(f)
     else:
-        return len(d1)/max(f)
-
+        if max(f)==0:
+            return 0
+        else:
+            return len(d1)/max(f)
+        
 def f6(s,S):
     res = 0
     title = get_title(S["source"], S["source_url"])
@@ -124,16 +131,19 @@ def f1_extraction(data):
     return data
 
 def f2_extraction(data):
-    global idx
+    global idx,flag 
     flatten=lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F2"]=[]
+        flag=1 
         for idx,paragraph in enumerate(doc["paragraphs"]):
             list_f2=[]
             for sentence in paragraph:
                 list_f2.append(f2(sentence,doc))
+                flag=0 
             doc["F2"].append(list_f2)
         doc["F2"]=flatten(doc["F2"])
+    return data
 
 def f3_extraction(data):
     # Unique Formatting
