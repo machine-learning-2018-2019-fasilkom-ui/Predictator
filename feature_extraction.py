@@ -94,6 +94,13 @@ def f2(s,S):
         return 0
     else:
         return len(d1)/max(f)
+    
+def f3(s,S):
+    tot=0
+    for word in s:
+        if word.isupper() or any(list(x.isupper() for x in word)):
+            tot+=1
+    return tot/len(s)
 
 def f6(s,S):
     res = 0
@@ -137,7 +144,15 @@ def f2_extraction(data):
 
 def f3_extraction(data):
     # Unique Formatting
-    pass
+    for doc in data:
+        doc["F3"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f3=[]
+            for sentence in paragraph:
+                list_f3.append(f3(sentence,doc))
+            doc["F3"].append(list_f3)
+        doc["F3"]=flatten(doc["F3"])
+    return data
 
 def f4_extraction(data):
     # Important cue phrases
