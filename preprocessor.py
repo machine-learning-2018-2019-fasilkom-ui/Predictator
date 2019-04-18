@@ -107,15 +107,21 @@ def pos_tagger(data):
     return data
 
 def pre_processed_all(data):
+    print("\tPos-Tagging")
     data = pos_tagger(data)
+    print("\tRemoving Stopword")
     data = stopword_remover(data)
+    print("\tStemmings")
     data = word_stemmer(data)
+    print("\tLemmatization")
     data = word_lemmatizer(data)
     return data
 
-def save_preprocessed_data(data, precomputed:False, file_dir:"analysis/precomputed_dataset.jsonl"):
+def save_preprocessed_data(data, precomputed=False, file_dir="analysis/precomputed_dataset.jsonl"):
+    print("Preprocessing")
     data = data if precomputed else pre_processed_all(data)
-    with open(file_dir) as f:
+    print("Saving Preprocessed Data")
+    with open(file_dir, "w") as f:
         for datum in data:
             f.write(json.dumps(datum))
             f.write("\n")
@@ -124,22 +130,23 @@ def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
+    save_preprocessed_data(data)
     # print("Tag every word in paragraphs...")
     # data = pos_tagger(data)
-    print("jumlah dokumen %i"%len(data))
-    print(data[1]["paragraphs"])
-    print("---------")
-    print("Removing StopWord")
-    data = stopword_remover(data)
-    print(data[1]["stopped_paragraphs"])
-    print("---------")
-    print("Stemming")
-    data = word_stemmer(data)
-    print(data[1]["stemmed_paragraphs"])
-    print("---------")
-    print("Lemmatization")
-    data = word_lemmatizer(data)
-    print(data[1]["lemma_paragraphs"])
+    # print("jumlah dokumen %i"%len(data))
+    # print(data[1]["paragraphs"])
+    # print("---------")
+    # print("Removing StopWord")
+    # data = stopword_remover(data)
+    # print(data[1]["stopped_paragraphs"])
+    # print("---------")
+    # print("Stemming")
+    # data = word_stemmer(data)
+    # print(data[1]["stemmed_paragraphs"])
+    # print("---------")
+    # print("Lemmatization")
+    # data = word_lemmatizer(data)
+    # print(data[1]["lemma_paragraphs"])
 
 
 if __name__ == "__main__":

@@ -73,7 +73,7 @@ def f1(s,S):
         f.append(len(d2))
     return 1.0*len(d1)/max(f)
 
-def f2(s,S):
+def f2(s, S, idx):
     f=[]
     temp=deepcopy(S)
     temp["paragraphs"].pop(idx)
@@ -124,14 +124,13 @@ def f1_extraction(data):
     return data
 
 def f2_extraction(data):
-    global idx
     flatten=lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F2"]=[]
         for idx,paragraph in enumerate(doc["paragraphs"]):
             list_f2=[]
             for sentence in paragraph:
-                list_f2.append(f2(sentence,doc))
+                list_f2.append(f2(sentence,doc, idx))
             doc["F2"].append(list_f2)
         doc["F2"]=flatten(doc["F2"])
 
@@ -266,15 +265,15 @@ def compute_feature(data):
     data = f5_extraction(data)
     data = f6_extraction(data)
     data = f7_extraction(data)
-    data = f9_extraction(data)
+    # data = f9_extraction(data)
     data = f10_extraction(data)
     # data = f11_extraction(data)
     return data
 
-def save_feature(data, feature_precomputed:False, file_dir:"analysis/feature_set.jsonl"):
-    data = data if feature_precomputed else compute_feature(data)
+def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl"):
+    data = data if precomputed else compute_feature(data)
     selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11"]
-    with open(file_dir) as f:
+    with open(file_dir, "w") as f:
         for datum in data:
             selected_data = {}
             for field in selected_field:
@@ -289,16 +288,23 @@ def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
+    print("F1")
     data = f1_extraction(data)
+    print("F2")
     data = f2_extraction(data)
     # data = f3_extraction(data)
+    print("F5")
     data = f5_extraction(data)
+    print("F6")
     data = f6_extraction(data)
+    print("F7")
     data = f7_extraction(data)
-    data = f9_extraction(data)
+    # data = f9_extraction(data)
+    print("F10")
     data = f10_extraction(data)
     # data = f11_extraction(data)
-    print(data[0])
+    # print(data[0])
+    save_feature(data, precomputed=True)
 
 if __name__ == "__main__":
     demo()
