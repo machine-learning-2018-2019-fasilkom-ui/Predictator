@@ -5,6 +5,7 @@ from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from spacy.lemmatizer import Lemmatizer
 from spacy.lang.id import LOOKUP
 from nltk.tag import CRFTagger
+
 import numpy as np
 import re
 import json

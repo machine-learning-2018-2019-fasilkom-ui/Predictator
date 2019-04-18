@@ -89,7 +89,7 @@ def f2(s,S):
             temp.pop(j)
             flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
             d2=list(set(a).intersection(flattened2))
-            f.append(len(d2)) 
+            f.append(len(d2))
     if max(f)==0:
         return 0
     else:
@@ -213,7 +213,7 @@ def f9_extraction(data):
                 score = float(tag_NNP/len(kalimat))
                 list_score_kalimat.append(score)
             category['F9_score'].append(list_score_kalimat)
-    return tagged_data
+    return data
 
 def f10_extraction(data):
     # TF-ISF
@@ -261,27 +261,41 @@ def sentence_sentrality(data):
 
 def compute_feature(data):
     data = f1_extraction(data)
-    # data = f2_extraction(data)
+    data = f2_extraction(data)
     # data = f3_extraction(data)
     data = f5_extraction(data)
     data = f6_extraction(data)
     data = f7_extraction(data)
-    # data = f9_extraction(data)
+    data = f9_extraction(data)
     data = f10_extraction(data)
     # data = f11_extraction(data)
     return data
+
+def save_feature(data, feature_precomputed:True, file_dir:"analysis/feature_set.json"):
+    data = data if feature_precomputed else compute_feature(data)
+    selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11"]
+    with open(file_dir) as f:
+        for datum in data:
+            selected_data = {}
+            for field in selected_field:
+                if field in datum:
+                    selected_data[field] = datum[field]
+                else:
+                    selected_data[field] = []
+            f.write(json.dumps(selected_data))
+            f.write("\n")
 
 def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
     data = f1_extraction(data)
-    # data = f2_extraction(data)
+    data = f2_extraction(data)
     # data = f3_extraction(data)
     data = f5_extraction(data)
     data = f6_extraction(data)
     data = f7_extraction(data)
-    # data = f9_extraction(data)
+    data = f9_extraction(data)
     data = f10_extraction(data)
     # data = f11_extraction(data)
     print(data[0])
