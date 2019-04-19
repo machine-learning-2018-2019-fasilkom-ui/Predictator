@@ -1,5 +1,5 @@
 from data import open_dataset, get_title
-from preprocessor import stopword_remover, word_stemmer, word_lemmatizer, pos_tagger
+from preprocessor import stopword_remover, word_stemmer, word_lemmatizer, pos_tagger, pre_processed_all
 from collections import defaultdict
 from copy import deepcopy
 from text_rank import filter_sentences, build_vocabulary, build_coo_matrix, pagerank
@@ -293,9 +293,9 @@ def compute_feature(data):
     data = f5_extraction(data)
     data = f6_extraction(data)
     data = f7_extraction(data)
-    # data = f9_extraction(data)
+    data = f9_extraction(data)
     data = f10_extraction(data)
-    # data = f11_extraction(data)
+    data = f11_extraction(data)
     return data
 
 def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl"):
@@ -316,6 +316,7 @@ def demo():
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
+    data = pre_processed_all(data)
     print("F1")
     data = f1_extraction(data)
     print(data[0])
@@ -329,13 +330,14 @@ def demo():
     data = f6_extraction(data)
     print("F7")
     data = f7_extraction(data)
-    # data = f9_extraction(data)
+    print("F9")
+    data = f9_extraction(data)
     print("F10")
     data = f10_extraction(data)
     print("F11")
     data = f11_extraction(data)
     print(data[0])
     save_feature(data, precomputed=True)
-    
+
 if __name__ == "__main__":
     demo()

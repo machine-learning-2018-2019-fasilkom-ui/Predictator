@@ -41,7 +41,10 @@ class Rouge:
                     match_unigram += 1
         self.rouge_1_recall = 1.0*match_unigram/len(reference_unigram)
         self.rouge_1_precision = 1.0*match_unigram/len(choosen_unigram)
-        self.rouge_1_score = 2.0/((1.0/self.rouge_1_recall)+(1.0/self.rouge_1_precision))
+        if match_unigram == 0:
+            self.rouge_1_score = 0
+        else:
+            self.rouge_1_score = 2.0/((1.0/self.rouge_1_recall)+(1.0/self.rouge_1_precision))
 
     def rouge_2(self, reference_summary, choosen_sentence):
         reference_bigram = self._build_bigram_vocabulary(reference_summary)
@@ -66,7 +69,10 @@ class Rouge:
         lcs_len = self._lcs_length(reference_summary, choosen_sentence)
         self.rouge_l_recall = 1.0*lcs_len/len(reference_summary)
         self.rouge_l_precision = 1.0*lcs_len/len(choosen_sentence)
-        self.rouge_l_score = ((1+self.beta**2)*self.rouge_l_recall*self.rouge_l_precision)/(self.rouge_l_recall+ ((self.beta**2)*self.rouge_l_precision))
+        if lcs_len==0:
+            self.rouge_l_score = 0
+        else:
+            self.rouge_l_score = ((1+self.beta**2)*self.rouge_l_recall*self.rouge_l_precision)/(self.rouge_l_recall+ ((self.beta**2)*self.rouge_l_precision))
 
     def compute_all(self, reference_summary, choosen_sentence):
         self.rouge_1(reference_summary, choosen_sentence)
