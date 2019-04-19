@@ -65,35 +65,6 @@ def f1(s,S):
     flattened2=[val for sublist in temp for val in sublist]
     d1=list(set(s).intersection(flattened2))
     return len(d1)
-
-def f2(s,S):
-    global f
-    temp=deepcopy(S)
-    temp["paragraphs"].pop(idx)
-    flattened=[val for sublist in temp["paragraphs"] for val in sublist]
-    flattened2=[val for sublist in flattened for val in sublist]
-    d1=list(set(s).intersection(flattened2))
-    temp=deepcopy(S)
-    flattened=[val for sublist in temp["paragraphs"] for val in sublist]
-    if flag==1:
-        f=[]
-        for j in range(len(S["paragraphs"])):
-            for i in range(len(S["paragraphs"][j])):
-                a=flattened[i]
-                temp=deepcopy(S["paragraphs"])
-                temp.pop(j)
-                flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
-                d2=list(set(a).intersection(flattened2))
-                f.append(len(d2)) 
-        if max(f)==0:
-            return 0
-        else:
-            return len(d1)/max(f)
-    else:
-        if max(f)==0:
-            return 0
-        else:
-            return len(d1)/max(f)
     
 def f3(s,S):
     tot=0
@@ -149,16 +120,43 @@ def f1_extraction(data):
     return data
 
 def f2_extraction(data):
-    global idx,flag 
     flatten=lambda l: [item for sublist in l for item in sublist]
+    cout=0 #del
     for doc in data:
         doc["F2"]=[]
-        flag=1 
+        flag=1
         for idx,paragraph in enumerate(doc["paragraphs"]):
             list_f2=[]
             for sentence in paragraph:
-                list_f2.append(f2(sentence,doc))
-                flag=0 
+                temp=deepcopy(doc)
+                temp["paragraphs"].pop(idx)
+                flattened=[val for sublist in temp["paragraphs"] for val in sublist]
+                flattened2=[val for sublist in flattened for val in sublist]
+                res=len(list(set(sentence).intersection(flattened2)))
+                temp=deepcopy(doc)
+                flattened=[val for sublist in temp["paragraphs"] for val in sublist]
+                if flag==1:
+                    f=[]
+                    for j in range(len(doc["paragraphs"])):
+                        for i in range(len(doc["paragraphs"][j])):
+                            a=flattened[i]
+                            temp=deepcopy(doc["paragraphs"])
+                            temp.pop(j)
+                            flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
+                            d2=list(set(a).intersection(flattened2))
+                            f.append(len(d2))
+                    denom=max(f) 
+                    if denom==0:
+                        result=0
+                    else:
+                        result=res/denom
+                else:
+                    if denom==0:
+                        result=0
+                    else:
+                        result=res/denom
+                list_f2.append(result)
+                flag=0
             doc["F2"].append(list_f2)
         doc["F2"]=flatten(doc["F2"])
     return data
