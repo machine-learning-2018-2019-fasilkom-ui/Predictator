@@ -264,7 +264,7 @@ def f10_extraction(data):
     return data
 
 # Text Rank get score
-def fscore11_extraction(data):
+def f11_extraction(data):
     for category in data:
         category['F11'] = []
         temp = []
