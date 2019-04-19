@@ -112,6 +112,7 @@ def f7(s,S):
 
 def f1_extraction(data):
     # similarity sentence
+    global flag 
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F1"]=[]
