@@ -59,20 +59,24 @@ def weighted_doc_tf(data):
     return tf
 
 def f1(s,S):
-    f = []
-    flattened = [val for sublist in S["paragraphs"] for val in sublist]
-    temp = deepcopy(flattened)
+    global f
+    flattened=[val for sublist in S["paragraphs"] for val in sublist]
+    temp=deepcopy(flattened)
     temp.remove(s)
-    flattened2 = [val for sublist in temp for val in sublist]
-    d1 = list(set(s).intersection(flattened2))
-    for i in range(len(flattened)-1):
-        a = flattened[i]
-        temp = deepcopy(flattened)
-        temp.pop(i)
-        flattened2 = [val for sublist in temp for val in sublist]
-        d2 = list(set(a).intersection(flattened2))
-        f.append(len(d2))
-    return 1.0*len(d1)/max(f)
+    flattened2=[val for sublist in temp for val in sublist]
+    d1=list(set(s).intersection(flattened2))
+    if flag==1: 
+        f=[]             
+        for i in range(len(flattened)):
+            a=flattened[i]
+            temp=deepcopy(flattened)
+            temp.pop(i)
+            flattened2=[val for sublist in temp for val in sublist]
+            d2=list(set(a).intersection(flattened2))
+            f.append(len(d2))
+        return len(d1)/max(f)
+    else: 
+        return len(d1)/max(f) 
 
 def f2(s,S):
     f=[]
@@ -120,13 +124,16 @@ def f7(s,S):
 
 def f1_extraction(data):
     # similarity sentence
+    global flag 
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
-        doc["F1"] = []
+        doc["F1"]=[]
+        flag=1 
         for paragraph in doc["paragraphs"]:
-            list_f1 = []
+            list_f1=[]
             for sentence in paragraph:
-                list_f1.append(f1(sentence,doc))
+                list_f1.append(F1(sentence,doc))
+                flag=0
             doc["F1"].append(list_f1)
         doc["F1"]=flatten(doc["F1"])
     return data
