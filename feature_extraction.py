@@ -8,10 +8,11 @@ import re
 import json
 import numpy as np
 
+flatten = lambda l: [item for sublist in l for item in sublist]
+
 def idf_counter(data):
     document_frequency = defaultdict(int)
     idf = defaultdict(float)
-    flatten = lambda l: [item for sublist in l for item in sublist]
     n_doc = len(data)
     for i in data:
         paragraphs = flatten(i["paragraphs"])
@@ -24,7 +25,6 @@ def idf_counter(data):
 
 def isf_counter(data):
     all_isf = []
-    flatten = lambda l: [item for sublist in l for item in sublist]
     for idx,i in enumerate(data):
         # all_isf.append([])
         sentences = flatten(i["paragraphs"])
@@ -45,7 +45,6 @@ def isf_counter(data):
 
 def weighted_doc_tf(data):
     tf = []
-    flatten = lambda l: [item for sublist in l for item in sublist]
     for i in data:
         paragraphs = flatten(i["paragraphs"])
         words = flatten(paragraphs)
@@ -90,8 +89,6 @@ def f7(s,S):
 
 def f1_extraction(data):
     # similarity sentence
-    global flag
-    flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F1"]=[]
         flag=1
@@ -180,7 +177,6 @@ def f4score_extraction(data):
 
 def f5_extraction(data):
     # TF-IDF
-    flatten = lambda l: [item for sublist in l for item in sublist]
     tf = weighted_doc_tf(data)
     idf = idf_counter(data)
     for idx, doc in enumerate(data):
@@ -194,26 +190,24 @@ def f5_extraction(data):
                     doc["F5"][i][j] += tf[i][word]*idf[word]
         doc_max_tf_idf = max(flatten(doc["F5"]))
         for i,paragraph in enumerate(doc["paragraphs"]):
-    score        for j,sentence in enumerate(paragraph):
+            for j,sentence in enumerate(paragraph):
                 doc["F5"][i][j] /= doc_max_tf_idf
     return data
 
 def f6_extraction(data):
     # unigram overlap sentencce with title
-    flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F6"]=[]
         for paragraph in doc["paragraphs"]:
             list_f6=[]
             for sentence in paragraph:
-    score            list_f6.append(f6(sentence,doc))
+                list_f6.append(f6(sentence,doc))
             doc["F6"].append(list_f6)
         doc["F6"]=flatten(doc["F6"])
     return data
 
 def f7_extraction(data):
     # Paragraph location
-    flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
         doc["F7"]=[]
         for paragraph in doc["paragraphs"]:
@@ -241,7 +235,7 @@ def f9_extraction(data):
                 for tag in kalimat:
                     if tag[1]=='NNP':
                         tag_NNP += 1
-    score                else:
+                    else:
                         pass
                 score = float(tag_NNP/len(kalimat))
                 list_score_kalimat.append(score)
@@ -250,7 +244,6 @@ def f9_extraction(data):
 
 def f10_extraction(data):
     # TF-ISF
-    fscorelatten = lambda l: [item for sublist in l for item in sublist]
     tf = weighted_doc_tf(data)
     isf = isf_counter(data)
     for idx, doc in enumerate(data):
@@ -258,7 +251,7 @@ def f10_extraction(data):
         for i,paragraph in enumerate(doc["paragraphs"]):
             doc["F10"].append([])
             doc["F10"][i] = []
-    score        for j,sentence in enumerate(paragraph):
+            for j,sentence in enumerate(paragraph):
                 doc["F10"][i].append(0.0)
                 for word in sentence:
                     doc["F10"][i][j] += tf[i][word]*isf[idx][word]
@@ -273,7 +266,8 @@ def f10_extraction(data):
 # Text Rank get score
 def fscore11_extraction(data):
     for category in data:
-        category['Textrank_score'] = []
+        category['F11'] = []
+        temp = []
         for paragraph in category['paragraphs']:
             list_score_textrank = []
             for kalimat in paragraph:
@@ -283,15 +277,21 @@ def fscore11_extraction(data):
                 ranks = pagerank(S)
                 score = ranks.sum()
                 list_score_textrank.append(score)
-            category['Textrank_score'].append(list_score_textrank)
+            temp.append(list_score_textrank)
+        flatted_score = flatten(temp)
+        max_score = max(flatted_score)
+        for paragraph_score in temp:
+            list_score_textrank = []
+            for sentence_score in paragraph_score:
+                list_score_textrank.append(sentence_score/max_score)
     return data
 
 
-def sentence_sentrality(data):
-    #Score sentence based on overlap words with other sentences
-    flatten = lambda l: [item for sublist in l for item in sublist]
+def f12_extraction(data):
+    # sentence centrality
+    # ratio unigram overlap sentence with overall unigram in doc
     for category in data:
-        category['Overlap_score'] = []
+        category['F12'] = []
         for paragraph in category['paragraphs']:
             list_score_overlap = []
             for kalimat in paragraph:
@@ -302,7 +302,7 @@ def sentence_sentrality(data):
                 overlap = len(set(kalimat)) + len(set(kalimat_lain)) - len(set(kalimat + kalimat_lain))
                 overlap_score = float(overlap/len(set(kalimat + kalimat_lain)))
                 list_score_overlap.append(overlap_score)
-            category['Overlap_score'].append(list_score_overlap)
+            category['F12'].append(list_score_overlap)
     return data
 
 def compute_feature(data):
@@ -319,7 +319,7 @@ def compute_feature(data):
 
 def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl"):
     data = data if precomputed else compute_feature(data)
-    selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11"]
+    selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12"]
     with open(file_dir, "w") as f:
         for datum in data:
             selected_data = {}
@@ -332,7 +332,6 @@ def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl")
             f.write("\n")
 
 def demo():
-    flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
     data = pre_processed_all(data)
@@ -342,7 +341,8 @@ def demo():
     print("F2")
     data = f2_extraction(data)
     print(data[0])
-    # data = f3_extraction(data)
+    print("F3")
+    data = f3_extraction(data)
     print("F5")
     data = f5_extraction(data)
     print("F6")
@@ -355,6 +355,8 @@ def demo():
     data = f10_extraction(data)
     print("F11")
     data = f11_extraction(data)
+    print("F12")
+    data = f12_extraction(data)
     print(data[0])
     save_feature(data, precomputed=True)
 
