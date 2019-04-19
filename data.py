@@ -57,22 +57,61 @@ def open_dataset(type, fold):
             line = datafile.readline()
     return data
 
+def quick_stat(data):
+    # Len berita
+    # total kalimat
+    # total vocab
+    #
+    n_data = len(data)
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    vocab = []
+    sentence_counter = 0
+    pos_label_counter = 0
+    neg_label_counter = 0
+    summary_length = 0
+    for doc in data:
+        for sentence in flatten(doc["paragraphs"]):
+            sentence_counter += 1
+            vocab.append(sentence)
+        for label in flatten(doc["gold_labels"]):
+            if label == True:
+                pos_label_counter += 1
+            else:
+                neg_label_counter += 1
+        summary_length += len(doc["summary"])
+
+    vocab = flatten(vocab)
+    print(vocab)
+    print("#Berita          : %d"%(n_data))
+    print("#Kalimat         : %d"%(sentence_counter))
+    print("#Kalimat/#Berita : %f"%(1.0*sentence_counter/n_data))
+    print("#Kata/#Berita    : %f"%(1.0*len(vocab)/n_data))
+    print("#Unique Token    : %d"%(len(set(vocab))))
+    print("#Summary/#Berita : %f"%(1.0*summary_length/n_data))
+    print("#Positive Label  : %d"%(pos_label_counter))
+    print("#Negative Label  : %d"%(neg_label_counter))
+    print("Prevalence Data  : %f"%(1.0*pos_label_counter/sentence_counter))
+
 def demo():
     dataset_type = list(FILENAME_FORMAT.keys())
     fold = range(1,6)
     for dataset in dataset_type:
         for k in fold:
             print("Opening dataset %s fold %i"%(dataset, k))
-            data = open_dataset(dataset, 1)
+            data = open_dataset(dataset, k)
 
-    source_key = []
-    for datum in data:
-        source_key.append(datum["source"])
-        if datum["source"] == "juara.net":
-            print(datum["source_url"])
-            print(get_title(datum["source"], datum["source_url"]))
-            print("------------------")
-    print(set(source_key))
+    # source_key = []
+    # for datum in data:
+    #     source_key.append(datum["source"])
+    #     if datum["source"] == "juara.net":
+    #         print(datum["source_url"])
+    #         print(get_title(datum["source"], datum["source_url"]))
+    #         print("------------------")
+    # print(set(source_key))
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
+    data = flatten(data)
+    quick_stat(data)
 
 if __name__ == "__main__":
     demo()

@@ -21,12 +21,12 @@ class Evaluator:
     def _precision(self):
         tp = self.confusion_matrix[(1,1)]
         fp = self.confusion_matrix[(0,1)]
-        self.precision = 1.0*(tp+fp)/self._n_data
+        self.precision = 1.0*(tp)/(tp+fp)
 
     def _recall(self):
         tp = self.confusion_matrix[(1,1)]
         fn = self.confusion_matrix[(1,0)]
-        self.recall = 1.0*(tp+fn)/self._n_data
+        self.recall = 1.0*(tp)/(tp+fn)
 
     def _f1_score(self):
         self.f1_score = 2/((1/self.recall)+(1/self.precision))
