@@ -3,6 +3,7 @@ from preprocessor import pos_tagger, stopword_remover, word_stemmer, word_lemmat
 from feature_extraction import compute_feature
 from model.lead3 import Lead3
 from evaluation import Evaluator
+from rouge_evaluation import Rouge
 
 method_ready = ["lead3"]
 def main():
@@ -26,6 +27,22 @@ def main():
     print("Precision    = %f"%metric_evaluation.precision)
     print("Recall       = %f"%metric_evaluation.recall)
     print("F1 Score     = %f"%metric_evaluation.f1_score)
+    print("ROUGE evaluation")
+    rouge_value = {"1": [], "2":[], "L":[]}
+    for doc in data:
+        selected_summary = []
+        sentence_candidate = flatten(doc["paragraphs"])
+        for idx, label in enumerate(flatten(doc["predicted_labels"]["lead3"])):
+            if label == 1:
+                selected_summary.append(sentence_candidate[idx])
+        rouge_eval = Rouge().compute_all(doc["summary"], selected_summary)
+        rouge_value["1"].append(rouge_eval.rouge_1_score)
+        rouge_value["2"].append(rouge_eval.rouge_2_score)
+        rouge_value["L"].append(rouge_eval.rouge_l_score)
+    print("average rouge performance :")
+    print("ROUGE-1  = %f"%(sum(rouge_value["1"])/len(data)))
+    print("ROUGE-2  = %f"%(sum(rouge_value["2"])/len(data)))
+    print("ROUGE-L  = %f"%(sum(rouge_value["L"])/len(data)))
     # print(predicted_labels)
 
 if __name__ == "__main__":

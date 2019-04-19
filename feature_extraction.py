@@ -157,7 +157,6 @@ def f5_extraction(data):
                 doc["F5"][i].append(0.0)
                 for word in sentence:
                     doc["F5"][i][j] += tf[i][word]*idf[word]
-            # Normalization
         doc_max_tf_idf = max(flatten(doc["F5"]))
         for i,paragraph in enumerate(doc["paragraphs"]):
             for j,sentence in enumerate(paragraph):
@@ -290,8 +289,10 @@ def demo():
     data = flatten(data)
     print("F1")
     data = f1_extraction(data)
+    print(data[0])
     print("F2")
     data = f2_extraction(data)
+    print(data[0])
     # data = f3_extraction(data)
     print("F5")
     data = f5_extraction(data)
