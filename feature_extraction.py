@@ -66,35 +66,6 @@ def f1(s,S):
     d1=list(set(s).intersection(flattened2))
     return len(d1)
 
-def f2(s,S):
-    global f
-    temp=deepcopy(S)
-    temp["paragraphs"].pop(idx)
-    flattened=[val for sublist in temp["paragraphs"] for val in sublist]
-    flattened2=[val for sublist in flattened for val in sublist]
-    d1=list(set(s).intersection(flattened2))
-    temp=deepcopy(S)
-    flattened=[val for sublist in temp["paragraphs"] for val in sublist]
-    if flag==1:
-        f=[]
-        for j in range(len(S["paragraphs"])):
-            for i in range(len(S["paragraphs"][j])):
-                a=flattened[i]
-                temp=deepcopy(S["paragraphs"])
-                temp.pop(j)
-                flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
-                d2=list(set(a).intersection(flattened2))
-                f.append(len(d2))
-        if max(f)==0:
-            return 0
-        else:
-            return len(d1)/max(f)
-    else:
-        if max(f)==0:
-            return 0
-        else:
-            return len(d1)/max(f)
-
 def f3(s,S):
     tot=0
     for word in s:
@@ -149,15 +120,42 @@ def f1_extraction(data):
     return data
 
 def f2_extraction(data):
-    global idx,flag
     flatten=lambda l: [item for sublist in l for item in sublist]
+    cout=0 #del
     for doc in data:
         doc["F2"]=[]
         flag=1
         for idx,paragraph in enumerate(doc["paragraphs"]):
             list_f2=[]
             for sentence in paragraph:
-                list_f2.append(f2(sentence,doc))
+                temp=deepcopy(doc)
+                temp["paragraphs"].pop(idx)
+                flattened=[val for sublist in temp["paragraphs"] for val in sublist]
+                flattened2=[val for sublist in flattened for val in sublist]
+                res=len(list(set(sentence).intersection(flattened2)))
+                temp=deepcopy(doc)
+                flattened=[val for sublist in temp["paragraphs"] for val in sublist]
+                if flag==1:
+                    f=[]
+                    for j in range(len(doc["paragraphs"])):
+                        for i in range(len(doc["paragraphs"][j])):
+                            a=flattened[i]
+                            temp=deepcopy(doc["paragraphs"])
+                            temp.pop(j)
+                            flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
+                            d2=list(set(a).intersection(flattened2))
+                            f.append(len(d2))
+                    denom=max(f)
+                    if denom==0:
+                        result=0
+                    else:
+                        result=res/denom
+                else:
+                    if denom==0:
+                        result=0
+                    else:
+                        result=res/denom
+                list_f2.append(result)
                 flag=0
             doc["F2"].append(list_f2)
         doc["F2"]=flatten(doc["F2"])
@@ -175,7 +173,7 @@ def f3_extraction(data):
         doc["F3"]=flatten(doc["F3"])
     return data
 
-def f4_extraction(data):
+def f4score_extraction(data):
     # Important cue phrases
     # NOT EXTRACTED DUE TO LACK OF CUE PHRASES DATA
     pass
@@ -196,7 +194,7 @@ def f5_extraction(data):
                     doc["F5"][i][j] += tf[i][word]*idf[word]
         doc_max_tf_idf = max(flatten(doc["F5"]))
         for i,paragraph in enumerate(doc["paragraphs"]):
-            for j,sentence in enumerate(paragraph):
+    score        for j,sentence in enumerate(paragraph):
                 doc["F5"][i][j] /= doc_max_tf_idf
     return data
 
@@ -208,7 +206,7 @@ def f6_extraction(data):
         for paragraph in doc["paragraphs"]:
             list_f6=[]
             for sentence in paragraph:
-                list_f6.append(f6(sentence,doc))
+    score            list_f6.append(f6(sentence,doc))
             doc["F6"].append(list_f6)
         doc["F6"]=flatten(doc["F6"])
     return data
@@ -232,7 +230,7 @@ def f8_extraction(data):
     pass
 
 def f9_extraction(data):
-    #Score for sentences contains Proper Noun
+    #Sscorecore for sentences contains Proper Noun
     # Must run pos_tagger() first
     for category in data:
         category['F9_score'] = []
@@ -243,7 +241,7 @@ def f9_extraction(data):
                 for tag in kalimat:
                     if tag[1]=='NNP':
                         tag_NNP += 1
-                    else:
+    score                else:
                         pass
                 score = float(tag_NNP/len(kalimat))
                 list_score_kalimat.append(score)
@@ -252,7 +250,7 @@ def f9_extraction(data):
 
 def f10_extraction(data):
     # TF-ISF
-    flatten = lambda l: [item for sublist in l for item in sublist]
+    fscorelatten = lambda l: [item for sublist in l for item in sublist]
     tf = weighted_doc_tf(data)
     isf = isf_counter(data)
     for idx, doc in enumerate(data):
@@ -260,7 +258,7 @@ def f10_extraction(data):
         for i,paragraph in enumerate(doc["paragraphs"]):
             doc["F10"].append([])
             doc["F10"][i] = []
-            for j,sentence in enumerate(paragraph):
+    score        for j,sentence in enumerate(paragraph):
                 doc["F10"][i].append(0.0)
                 for word in sentence:
                     doc["F10"][i][j] += tf[i][word]*isf[idx][word]
@@ -273,7 +271,7 @@ def f10_extraction(data):
     return data
 
 # Text Rank get score
-def f11_extraction(data):
+def fscore11_extraction(data):
     for category in data:
         category['Textrank_score'] = []
         for paragraph in category['paragraphs']:
