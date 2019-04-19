@@ -2,6 +2,7 @@ from data import open_dataset, get_title
 from preprocessor import stopword_remover, word_stemmer, word_lemmatizer, pos_tagger
 from collections import defaultdict
 from copy import deepcopy
+from text_rank import filter_sentences, build_vocabulary, build_coo_matrix, pagerank
 
 import re
 import json
@@ -58,20 +59,12 @@ def weighted_doc_tf(data):
     return tf
 
 def f1(s,S):
-    f = []
-    flattened = [val for sublist in S["paragraphs"] for val in sublist]
-    temp = deepcopy(flattened)
+    flattened=[val for sublist in S["paragraphs"] for val in sublist]
+    temp=deepcopy(flattened)
     temp.remove(s)
-    flattened2 = [val for sublist in temp for val in sublist]
-    d1 = list(set(s).intersection(flattened2))
-    for i in range(len(flattened)-1):
-        a = flattened[i]
-        temp = deepcopy(flattened)
-        temp.pop(i)
-        flattened2 = [val for sublist in temp for val in sublist]
-        d2 = list(set(a).intersection(flattened2))
-        f.append(len(d2))
-    return 1.0*len(d1)/max(f)
+    flattened2=[val for sublist in temp for val in sublist]
+    d1=list(set(s).intersection(flattened2))
+    return len(d1)
 
 def f2(s,S):
     global f
@@ -101,7 +94,14 @@ def f2(s,S):
             return 0
         else:
             return len(d1)/max(f)
-        
+    
+def f3(s,S):
+    tot=0
+    for word in s:
+        if word.isupper() or any(list(x.isupper() for x in word)):
+            tot+=1
+    return tot/len(s)
+
 def f6(s,S):
     res = 0
     title = get_title(S["source"], S["source_url"])
@@ -119,13 +119,31 @@ def f7(s,S):
 
 def f1_extraction(data):
     # similarity sentence
+    global flag 
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
-        doc["F1"] = []
+        doc["F1"]=[]
+        flag=1 
         for paragraph in doc["paragraphs"]:
-            list_f1 = []
+            list_f1=[]
             for sentence in paragraph:
-                list_f1.append(f1(sentence,doc))
+                res=f1(sentence,doc)
+                if flag==1:
+                    f=[]            
+                    flattened=[val for sublist in doc["paragraphs"] for val in sublist]
+                    for i in range(len(flattened)):
+                        a=flattened[i]
+                        temp=deepcopy(flattened)
+                        temp.pop(i)
+                        flattened2=[val for sublist in temp for val in sublist]
+                        d2=list(set(a).intersection(flattened2))
+                        f.append(len(d2))
+                    denom=max(f)
+                    result=res/denom
+                else: 
+                    result=res/denom 
+                list_f1.append(result)
+                flag=0 
             doc["F1"].append(list_f1)
         doc["F1"]=flatten(doc["F1"])
     return data
@@ -147,7 +165,15 @@ def f2_extraction(data):
 
 def f3_extraction(data):
     # Unique Formatting
-    pass
+    for doc in data:
+        doc["F3"]=[]
+        for paragraph in doc["paragraphs"]:
+            list_f3=[]
+            for sentence in paragraph:
+                list_f3.append(f3(sentence,doc))
+            doc["F3"].append(list_f3)
+        doc["F3"]=flatten(doc["F3"])
+    return data
 
 def f4_extraction(data):
     # Important cue phrases
@@ -247,9 +273,22 @@ def f10_extraction(data):
                 doc["F10"][i][j] /= doc_max_tf_isf
     return data
 
+# Text Rank get score
 def f11_extraction(data):
-    # TextRank
-    pass
+    for category in data:
+        category['Textrank_score'] = []
+        for paragraph in category['paragraphs']:
+            list_score_textrank = []
+            for kalimat in paragraph:
+                filtered_sentences = filter_sentences([kalimat])
+                word_to_ix, ix_to_word = build_vocabulary(filtered_sentences)
+                S = build_coo_matrix(filtered_sentences, word_to_ix)
+                ranks = pagerank(S)
+                score = ranks.sum()
+                list_score_textrank.append(score)
+            category['Textrank_score'].append(list_score_textrank)
+    return data
+
 
 def sentence_sentrality(data):
     #Score sentence based on overlap words with other sentences
@@ -307,7 +346,7 @@ def demo():
     data = f7_extraction(data)
     data = f9_extraction(data)
     data = f10_extraction(data)
-    # data = f11_extraction(data)
+    data = f11_extraction(data)
     print(data[0])
 
 if __name__ == "__main__":
