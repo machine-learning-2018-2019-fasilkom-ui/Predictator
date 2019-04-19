@@ -59,20 +59,12 @@ def weighted_doc_tf(data):
     return tf
 
 def f1(s,S):
-    f = []
-    flattened = [val for sublist in S["paragraphs"] for val in sublist]
-    temp = deepcopy(flattened)
+    flattened=[val for sublist in S["paragraphs"] for val in sublist]
+    temp=deepcopy(flattened)
     temp.remove(s)
-    flattened2 = [val for sublist in temp for val in sublist]
-    d1 = list(set(s).intersection(flattened2))
-    for i in range(len(flattened)-1):
-        a = flattened[i]
-        temp = deepcopy(flattened)
-        temp.pop(i)
-        flattened2 = [val for sublist in temp for val in sublist]
-        d2 = list(set(a).intersection(flattened2))
-        f.append(len(d2))
-    return 1.0*len(d1)/max(f)
+    flattened2=[val for sublist in temp for val in sublist]
+    d1=list(set(s).intersection(flattened2))
+    return len(d1)
 
 def f2(s,S):
     f=[]
@@ -122,11 +114,28 @@ def f1_extraction(data):
     # similarity sentence
     flatten = lambda l: [item for sublist in l for item in sublist]
     for doc in data:
-        doc["F1"] = []
+        doc["F1"]=[]
+        flag=1 
         for paragraph in doc["paragraphs"]:
-            list_f1 = []
+            list_f1=[]
             for sentence in paragraph:
-                list_f1.append(f1(sentence,doc))
+                res=f1(sentence,doc)
+                if flag==1:
+                    f=[]            
+                    flattened=[val for sublist in doc["paragraphs"] for val in sublist]
+                    for i in range(len(flattened)):
+                        a=flattened[i]
+                        temp=deepcopy(flattened)
+                        temp.pop(i)
+                        flattened2=[val for sublist in temp for val in sublist]
+                        d2=list(set(a).intersection(flattened2))
+                        f.append(len(d2))
+                    denom=max(f)
+                    result=res/denom
+                else: 
+                    result=res/denom 
+                list_f1.append(result)
+                flag=0 
             doc["F1"].append(list_f1)
         doc["F1"]=flatten(doc["F1"])
     return data
