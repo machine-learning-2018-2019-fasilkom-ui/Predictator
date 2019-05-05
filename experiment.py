@@ -38,12 +38,27 @@ def svm_experiment(train_data, validation_data, test_data):
     train_feature_matrix = []
     train_label_vector = []
     for doc in train_data:
-        train_feature_matrix.append([])
+        for idx, sentences in enumerate(flatten(doc["paragraphs"])):
+            sentence_feature = []
+            for attr in feature_attr_name:
+                sentence_feature.append(doc[attr][idx])
+            train_feature_matrix.append(sentence_feature)
+            train_label_vector.append(flatten(doc["gold_labels"])[idx])
     train_feature_matrix = np.array(train_feature_matrix)
+    train_label_vector = np.array(train_label_vector)
     # run_training
+    test_feature_matrix = []
+    svm_clf.fit(train_feature_matrix, train_label_vector)
+    for doc in test_data:
+        for idx, sentences in enumerate(flatten(doc["paragraphs"])):
+            sentence_feature = []
+            for attr in feature_attr_name:
+                sentence_feature.append(doc[attr][idx])
+            test_feature_matrix.append(sentence_feature)
     # predict test_data
-    #
-
+    test_feature_matrix = np.array(test_feature_matrix)
+    predicted_labels = svm_clf.predict(test_feature_matrix)
+    return predicted_labels
 
 def run_experiment(train_data, validation_data, test_data, method):
     if method=="lead3":
