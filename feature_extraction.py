@@ -310,7 +310,7 @@ def f12_extraction(data):
 def compute_feature(data):
     data = f1_extraction(data)
     data = f2_extraction(data)
-    # data = f3_extraction(data)
+    data = f3_extraction(data)
     data = f5_extraction(data)
     data = f6_extraction(data)
     data = f7_extraction(data)

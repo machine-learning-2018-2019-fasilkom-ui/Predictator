@@ -15,12 +15,13 @@ def rbf_kernel(x,y,sigma):
     return e**(-1*(np.linalg.norm([x[i]-y[i] for i in range(len(x))])**2)/(2*(sigma**2)))
 
 class SVM:
-    def __init__(self, kernel=linear_kernel, C=None, degree=3, sigma=5):
+    def __init__(self, kernel="linear_kernel", C=None, degree=3, sigma=5):
         self.a = None
         self.sv = None
         self.svt = None
         self.b = None
         self.C = C
+
         self.kernel = kernel
         self.degree = degree
         self.sigma = sigma
@@ -28,12 +29,12 @@ class SVM:
             self.C = float(self.C)
 
     def _kernel(self, v1, v2):
-        if self.kernel == linear_kernel:
-            return self.kernel(v1, v2)
-        elif self.kernel == polynomial_kernel:
-            return self.kernel(v1, v2, self.degree)
-        elif self.kernel == rbf_kernel:
-            return self.kernel(v1, v2, self.sigma)
+        if self.kernel == "linear_kernel":
+            return linear_kernel(v1, v2)
+        elif self.kernel == "polynomial_kernel":
+            return polynomial_kernel(v1, v2, self.degree)
+        elif self.kernel == "rbf_kernel":
+            return rbf_kernel(v1, v2, self.sigma)
         else:
             print("Invalid Kernel")
             raise InvalidKernelError()
@@ -63,7 +64,13 @@ class SVM:
         a = np.ravel(res['x'])
         return a
 
-    def fit(self, X, y):
+    def fit(self, X, y, truth_label=1):
+        y = np.array(y)
+        X = np.array(X)
+        if set(y) != set([-1, 1]):
+            _re_label = lambda x: [1 if i==truth_label else -1 for i in x]
+            y = _re_label(y)
+
         a = self._qpSolver(X, y)
         self.a = []
         self.sv = []
