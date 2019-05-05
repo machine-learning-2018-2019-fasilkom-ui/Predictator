@@ -170,7 +170,7 @@ def f3_extraction(data):
         doc["F3"]=flatten(doc["F3"])
     return data
 
-def f4score_extraction(data):
+def f4_extraction(data):
     # Important cue phrases
     # NOT EXTRACTED DUE TO LACK OF CUE PHRASES DATA
     pass
@@ -192,6 +192,7 @@ def f5_extraction(data):
         for i,paragraph in enumerate(doc["paragraphs"]):
             for j,sentence in enumerate(paragraph):
                 doc["F5"][i][j] /= doc_max_tf_idf
+        doc["F5"] = flatten(doc["F5"])
     return data
 
 def f6_extraction(data):
@@ -212,8 +213,9 @@ def f7_extraction(data):
         doc["F7"]=[]
         for paragraph in doc["paragraphs"]:
             list_f7=[]
-            for sentence in paragraph:
-                list_f7.append(f7(sentence,doc))
+            n_sentence = len(paragraph)
+            for idx, sentence in enumerate(paragraph):
+                list_f7.append(1 if(idx==0 or idx==n_sentence-1) else 0)
             doc["F7"].append(list_f7)
         doc["F7"]=flatten(doc["F7"])
     return data
@@ -261,6 +263,7 @@ def f10_extraction(data):
         for i,paragraph in enumerate(doc["paragraphs"]):
             for j,sentence in enumerate(paragraph):
                 doc["F10"][i][j] /= doc_max_tf_isf
+        doc["F10"] = flatten(doc["F10"])
     return data
 
 # Text Rank get score
@@ -305,6 +308,7 @@ def f12_extraction(data):
                 overlap_score = float(overlap/len(set(kalimat + kalimat_lain)))
                 list_score_overlap.append(overlap_score)
             category['F12'].append(list_score_overlap)
+        category["F12"] = flatten(category["F12"])
     return data
 
 def compute_feature(data):

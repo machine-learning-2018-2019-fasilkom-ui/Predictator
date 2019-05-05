@@ -9,11 +9,17 @@ from evaluation import Evaluator
 from rouge_evaluation import Rouge
 from log import Log
 
+import numpy as np
+
 methods_ready = ["lead3"]
 LOG_FILE_NAME = "log_{}.txt"
 PRECOMP_PREPROCESSED_FILE = "analysis/precomputed_dataset.jsonl"
 FEATURE_SET_FILE = "analysis/feature_set.jsonl"
+
 log = Log()
+flatten = lambda l: [item for sublist in l for item in sublist]
+feature_attr_name = ["F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12"]
+preprocessing_attr = ["stopped_paragraphs", "stemmed_paragraphs", "lemma_paragraphs", "word_tag"]
 
 def lead3_experiment(test_data):
     log.write("Predicting with Lead3")
@@ -27,7 +33,13 @@ def svm_experiment(train_data, validation_data, test_data):
     conf = {"kernel": "linear_kernel", "degree":3, "sigma":5}
     svm_clf = SVM(kernel=conf["kernel"])
     # merge train and validation
+    train_data = flatten([train_data, validation_data])
     # build feature matrix
+    train_feature_matrix = []
+    train_label_vector = []
+    for doc in train_data:
+        train_feature_matrix.append([])
+    train_feature_matrix = np.array(train_feature_matrix)
     # run_training
     # predict test_data
     #
@@ -36,6 +48,8 @@ def svm_experiment(train_data, validation_data, test_data):
 def run_experiment(train_data, validation_data, test_data, method):
     if method=="lead3":
         predicted_labels = lead3_experiment(test_data)
+    elif method=="svm":
+        predicted_labels = svm_experiment(train_data, validation_data, test_data)
     else:
         raise(InvalidMethod())
     return predicted_labels
@@ -52,8 +66,6 @@ def get_data(fold, preprocessed_data=None, feature_data=None):
     train_data = open_dataset("train", fold)
     val_data = open_dataset("dev", fold)
     test_data = open_dataset("test", fold)
-    feature_attr_name = ["F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12"]
-    preprocessing_attr = ["stopped_paragraphs", "stemmed_paragraphs", "lemma_paragraphs", "word_tag"]
     for data_split in [train_data, val_data, test_data]:
         for doc in data_split:
             for attr in feature_attr_name:
@@ -96,7 +108,6 @@ def feature_extraction(data):
     return data
 
 def main():
-    flatten = lambda l: [item for sublist in l for item in sublist]
     # get precomputed file / compute preprocessing & feature
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     log.write("Preprocessing dataset...")
