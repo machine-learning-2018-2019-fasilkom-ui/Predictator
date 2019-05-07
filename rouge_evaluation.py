@@ -39,9 +39,9 @@ class Rouge:
             for choosen_word in choosen_unigram:
                 if ref_word == choosen_word:
                     match_unigram += 1
-        self.rouge_1_recall = 1.0*match_unigram/len(reference_unigram)
-        self.rouge_1_precision = 1.0*match_unigram/len(choosen_unigram)
-        if match_unigram == 0:
+        self.rouge_1_recall = 0 if len(reference_unigram)==0 else 1.0*match_unigram/len(reference_unigram)
+        self.rouge_1_precision = 0 if len(choosen_unigram)==0 else 1.0*match_unigram/len(choosen_unigram)
+        if self.rouge_1_recall == 0 or self.rouge_1_precision == 0:
             self.rouge_1_score = 0
         else:
             self.rouge_1_score = 2.0/((1.0/self.rouge_1_recall)+(1.0/self.rouge_1_precision))
@@ -56,9 +56,9 @@ class Rouge:
             for choosen_word in choosen_bigram:
                 if ref_word == choosen_word:
                     match_bigram += 1
-        self.rouge_2_recall = 1.0*match_bigram/len(reference_bigram)
-        self.rouge_2_precision = 1.0*match_bigram/len(choosen_bigram)
-        if match_bigram == 0:
+        self.rouge_2_recall = 0 if len(reference_bigram)==0 else 1.0*match_bigram/len(reference_bigram)
+        self.rouge_2_precision = 0 if len(choosen_bigram)==0 else 1.0*match_bigram/len(choosen_bigram)
+        if self.rouge_2_recall == 0 or self.rouge_2_precision == 0:
             self.rouge_2_score = 0
         else:
             self.rouge_2_score = 2.0/((1.0/self.rouge_2_recall)+(1.0/self.rouge_2_precision))
@@ -67,9 +67,9 @@ class Rouge:
         reference_summary = Rouge._flatten(reference_summary)
         choosen_sentence = Rouge._flatten(choosen_sentence)
         lcs_len = self._lcs_length(reference_summary, choosen_sentence)
-        self.rouge_l_recall = 1.0*lcs_len/len(reference_summary)
-        self.rouge_l_precision = 1.0*lcs_len/len(choosen_sentence)
-        if lcs_len==0:
+        self.rouge_l_recall = 0 if len(reference_summary)==0 else 1.0*lcs_len/len(reference_summary)
+        self.rouge_l_precision = 0 if len(choosen_sentence)==0 else 1.0*lcs_len/len(choosen_sentence)
+        if self.rouge_l_recall == 0 or self.rouge_l_precision == 0:
             self.rouge_l_score = 0
         else:
             self.rouge_l_score = ((1+self.beta**2)*self.rouge_l_recall*self.rouge_l_precision)/(self.rouge_l_recall+ ((self.beta**2)*self.rouge_l_precision))
