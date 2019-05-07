@@ -227,7 +227,7 @@ def f9_extraction(data):
     #Sscorecore for sentences contains Proper Noun
     # Must run pos_tagger() first
     for category in data:
-        category['F9_score'] = []
+        category['F9'] = []
         for paragraph in category['word_tag']:
             list_score_kalimat = []
             for kalimat in paragraph:
@@ -236,10 +236,10 @@ def f9_extraction(data):
                     if tag[1]=='NNP':
                         tag_NNP += 1
                     else:
-                        pass
+                        continue
                 score = float(tag_NNP/len(kalimat))
                 list_score_kalimat.append(score)
-            category['F9_score'].append(list_score_kalimat)
+            category['F9'].append(list_score_kalimat)
     return data
 
 def f10_extraction(data):
@@ -264,6 +264,7 @@ def f10_extraction(data):
     return data
 
 # Text Rank get score
+
 def f11_extraction(data):
     for category in data:
         category['F11'] = []
@@ -284,6 +285,7 @@ def f11_extraction(data):
             list_score_textrank = []
             for sentence_score in paragraph_score:
                 list_score_textrank.append(sentence_score/max_score)
+            category['F11'].append(list_score_textrank)
     return data
 
 
@@ -319,7 +321,7 @@ def compute_feature(data):
 
 def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl"):
     data = data if precomputed else compute_feature(data)
-    selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12"]
+    selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12",'gold_labels']
     with open(file_dir, "w") as f:
         for datum in data:
             selected_data = {}
@@ -337,10 +339,10 @@ def demo():
     data = pre_processed_all(data)
     print("F1")
     data = f1_extraction(data)
-    print(data[0])
+    #print(data[0])
     print("F2")
     data = f2_extraction(data)
-    print(data[0])
+    #print(data[0])
     print("F3")
     data = f3_extraction(data)
     print("F5")
@@ -351,13 +353,15 @@ def demo():
     data = f7_extraction(data)
     print("F9")
     data = f9_extraction(data)
+    #print(data[0])
     print("F10")
     data = f10_extraction(data)
     print("F11")
     data = f11_extraction(data)
+    #print(data[0])
     print("F12")
     data = f12_extraction(data)
-    print(data[0])
+    #print(data[0])
     save_feature(data, precomputed=True)
 
 if __name__ == "__main__":
