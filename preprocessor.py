@@ -101,9 +101,9 @@ def pos_tagger(data):
             list_tag_kalimat = []
             for kalimat in paragraph:
                 tag_kalimat = ct.tag_sents([kalimat])
+                tag_kalimat = flatten(tag_kalimat)
                 list_tag_kalimat.append(tag_kalimat)
             category['word_tag'].append(list_tag_kalimat)
-        category['word_tag'] = flatten(category['word_tag'])
     return data
 
 def pre_processed_all(data):
