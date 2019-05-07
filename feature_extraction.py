@@ -332,7 +332,47 @@ def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl")
                     selected_data[field] = []
             f.write(json.dumps(selected_data))
             f.write("\n")
+            
+# Must run save_feature first
+# Array look alike data
+def save_array_data_for_model(file_dir="analysis/feature_set.jsonl", file_save="analysis/nested_data.txt")
+    data = []
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    for line in open(file_dir, 'r'):
+        data.append(json.loads(line))
 
+    # Make gold_labels binary
+    for doc in data:
+        list_label = []
+        for label in doc['gold_labels']:
+            label = [1 if boolean==True else 0 for boolean in label]
+            list_label.append(label)
+        doc['gold_labels'] = flatten(list_label)
+
+    #Flatten data
+    for doc in data:
+        for feat in doc:
+            if isinstance(doc[feat], list):
+                doc[feat] = flatten(doc[feat])
+            else:
+                continue
+
+    # Save data into nested array
+    data_transpose = []
+    for doc in data:
+        data_matrix = []
+        for feat in doc:
+            if isinstance(doc[feat], list):
+                data_matrix.append(doc[feat])
+            else:
+                continue
+        transpose_matrix = list(map(list, zip(*data_matrix)))
+        data_transpose.append(transpose_matrix)
+    nested_array = flatten(data_transpose)
+    
+    # Save file
+    np.savetxt(file_save, nested_array, fmt='%s')
+            
 def demo():
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
