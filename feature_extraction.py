@@ -341,7 +341,7 @@ def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl")
 
 # Must run save_feature first
 # Array look alike data
-def save_array_data_for_model(file_dir="analysis/feature_set.jsonl", file_save="analysis/nested_data.txt")
+def save_array_data_for_model(file_dir="analysis/feature_set.jsonl", file_save="analysis/nested_data.txt"):
     data = []
     flatten = lambda l: [item for sublist in l for item in sublist]
     for line in open(file_dir, 'r'):

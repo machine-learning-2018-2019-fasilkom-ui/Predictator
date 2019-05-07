@@ -57,6 +57,13 @@ def open_dataset(type, fold):
             line = datafile.readline()
     return data
 
+def write_dataset(data, type, fold):
+    print(type, FILENAME_FORMAT[type]%fold)
+    with open(DATASET_DIR+FILENAME_FORMAT[type]%fold, 'w') as datafile:
+        for datum in data:
+            datafile.write(json.dumps(datum))
+            datafile.write("\n")
+
 def quick_stat(data):
     # Len berita
     # total kalimat
@@ -81,7 +88,6 @@ def quick_stat(data):
         summary_length += len(doc["summary"])
 
     vocab = flatten(vocab)
-    print(vocab)
     print("#Berita          : %d"%(n_data))
     print("#Kalimat         : %d"%(sentence_counter))
     print("#Kalimat/#Berita : %f"%(1.0*sentence_counter/n_data))
@@ -92,6 +98,31 @@ def quick_stat(data):
     print("#Negative Label  : %d"%(neg_label_counter))
     print("Prevalence Data  : %f"%(1.0*pos_label_counter/sentence_counter))
 
+def fix_dataset():
+    dataset_type = list(FILENAME_FORMAT.keys())
+    fold = range(1,6)
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    data_dict = dict()
+    for k in fold:
+        data = []
+        for dataset in dataset_type:
+            print("Opening dataset %s fold %i"%(dataset, k))
+            data.append(open_dataset(dataset, k))
+        data = flatten(data)
+        for doc in data:
+            if doc["id"] in data_dict:
+                if len(flatten(doc["gold_labels"])) > len(flatten(data_dict[doc["id"]]["gold_labels"])):
+                    data_dict[doc["id"]] = doc
+            else:
+                data_dict[doc["id"]] = doc
+    print("rewriting dataset")
+    for k in fold:
+        for dataset in dataset_type:
+            data = open_dataset(dataset, k)
+            for idx in range(len(data)):
+                data[idx] = data_dict[data[idx]["id"]]
+            write_dataset(data, dataset, k)
+
 def demo():
     dataset_type = list(FILENAME_FORMAT.keys())
     fold = range(1,6)
@@ -99,7 +130,7 @@ def demo():
         for k in fold:
             print("Opening dataset %s fold %i"%(dataset, k))
             data = open_dataset(dataset, k)
-
+    fix_dataset()
     # source_key = []
     # for datum in data:
     #     source_key.append(datum["source"])
