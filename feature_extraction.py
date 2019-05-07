@@ -242,6 +242,7 @@ def f9_extraction(data):
                 score = float(tag_NNP/len(kalimat))
                 list_score_kalimat.append(score)
             category['F9'].append(list_score_kalimat)
+        category["F9"] = flatten(category["F9"])
     return data
 
 def f10_extraction(data):
@@ -288,7 +289,8 @@ def f11_extraction(data):
             list_score_textrank = []
             for sentence_score in paragraph_score:
                 list_score_textrank.append(sentence_score/max_score)
-            category['F11'].append(list_score_textrank)
+            category["F11"].append(list_score_textrank)
+        category["F11"] = flatten(category["F11"])
     return data
 
 
@@ -336,7 +338,7 @@ def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl")
                     selected_data[field] = []
             f.write(json.dumps(selected_data))
             f.write("\n")
-            
+
 # Must run save_feature first
 # Array look alike data
 def save_array_data_for_model(file_dir="analysis/feature_set.jsonl", file_save="analysis/nested_data.txt")
@@ -373,20 +375,18 @@ def save_array_data_for_model(file_dir="analysis/feature_set.jsonl", file_save="
         transpose_matrix = list(map(list, zip(*data_matrix)))
         data_transpose.append(transpose_matrix)
     nested_array = flatten(data_transpose)
-    
+
     # Save file
     np.savetxt(file_save, nested_array, fmt='%s')
-            
+
 def demo():
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
     data = pre_processed_all(data)
     print("F1")
     data = f1_extraction(data)
-    #print(data[0])
     print("F2")
     data = f2_extraction(data)
-    #print(data[0])
     print("F3")
     data = f3_extraction(data)
     print("F5")
