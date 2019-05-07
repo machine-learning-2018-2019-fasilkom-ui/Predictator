@@ -7,8 +7,6 @@ from text_rank import filter_sentences, build_vocabulary, build_coo_matrix, page
 import re
 import json
 import numpy as np
-import time
-from datetime import timedelta
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
@@ -367,13 +365,9 @@ def save_array_data_for_model(file_dir="analysis/feature_set.jsonl", file_save="
 def demo():
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
-    # data = pre_processed_all(data)
+    data = pre_processed_all(data)
     print("F1")
-    t1 = time.time()
     data = f1_extraction(data)
-    print(data[0]["F1"])
-    t2 = time.time()
-    print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
     print("F2")
     data = f2_extraction(data)
     print("F3")

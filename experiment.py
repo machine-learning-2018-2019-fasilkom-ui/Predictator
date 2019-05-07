@@ -122,14 +122,8 @@ def get_data(fold, feature_data=None,  preprocessed_data=None):
     train_data = open_dataset("train", fold)
     val_data = open_dataset("dev", fold)
     test_data = open_dataset("test", fold)
-    # print(len(feature_data))
-    # print(len(flatten([train_data, val_data, test_data])))
-    counter = 0
     for data_split in [train_data, val_data, test_data]:
         for doc in data_split:
-            if doc["id"] == "1500977700-roberto-baggio-antara-dosa-dan-perjalanan-taubat-s":
-                print(doc["paragraphs"][-1])
-                print(len(flatten(doc["gold_labels"])))
             for attr in feature_attr_name:
                 doc[attr] = feature_data[doc["id"]][attr]
             if preprocessed_data:
@@ -173,8 +167,8 @@ def main():
     # get precomputed file / compute preprocessing & feature
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     # log.write("Preprocessing dataset...")
-    log.write("Feature extraction...")
     # pre_processed_data = preprocessing_data(flatten(data))
+    log.write("Feature extraction...")
     feature_data = feature_extraction(flatten(data))
     for fold in range(1,6):
         log.write("Get fold {} of IndoSum dataset".format(fold))

@@ -106,7 +106,6 @@ def fix_dataset():
     for k in fold:
         data = []
         for dataset in dataset_type:
-            print("Opening dataset %s fold %i"%(dataset, k))
             data.append(open_dataset(dataset, k))
         data = flatten(data)
         for doc in data:
@@ -131,14 +130,6 @@ def demo():
             print("Opening dataset %s fold %i"%(dataset, k))
             data = open_dataset(dataset, k)
     fix_dataset()
-    # source_key = []
-    # for datum in data:
-    #     source_key.append(datum["source"])
-    #     if datum["source"] == "juara.net":
-    #         print(datum["source_url"])
-    #         print(get_title(datum["source"], datum["source_url"]))
-    #         print("------------------")
-    # print(set(source_key))
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
