@@ -1,7 +1,8 @@
 from data import open_dataset
 from preprocessor import pre_processed_all
 from feature_extraction import compute_feature
-
+import pandas as pd
+from model.naivebayes import NaiveBayes,count
 from model.lead3 import Lead3
 from model.svm import SVM
 
@@ -100,6 +101,53 @@ def svm_experiment(train_data, validation_data, test_data):
             all_prediction[idx][label] += 1
     predicted_labels = np.argmax(all_prediction, axis=1)
     return predicted_labels
+
+def nb_experiment(train_data,validation_data,test_data):
+    conf={"naivebayes"}
+    log.write(conf)
+    log.write("Preparing data training")
+    #Preparing the data
+    labels=['low','medium','high']
+    train_data = flatten([train_data, validation_data])
+    for doc in range(len(train_data)):    
+            for val1 in range(len(train_data[doc]['gold_labels'])):
+                for val2 in range(len(train_data[doc]['gold_labels'][val1])):
+                    train_data[doc]['gold_labels'][val1][val2]=int(train_data[doc]['gold_labels'][val1][val2])
+    for doc in range(len(train_data)):    
+            train_data[doc]['gold_labels']=[val for sublist in train_data[doc]['gold_labels'] for val in sublist]
+    for doc in range(len(test_data)):    
+            for val1 in range(len(test_data[doc]['gold_labels'])):
+                for val2 in range(len(test_data[doc]['gold_labels'][val1])):
+                    test_data[doc]['gold_labels'][val1][val2]=int(test_data[doc]['gold_labels'][val1][val2])
+    for doc in range(len(test_data)):    
+            test_data[doc]['gold_labels']=[val for sublist in test_data[doc]['gold_labels'] for val in sublist]
+    for doc in range(len(train_data)):    
+        for feature in ('F1','F2','F3','F5','F6','F7','F9','F10','F11','F12'):
+            mean=sum(train_data[doc][feature])/len(train_data[doc][feature])
+            for element in range(len(train_data[doc][feature])):
+                if train_data[doc][feature][element]==0:
+                    train_data[doc][feature][element]=mean
+            train_data[doc][feature]=pd.cut(train_data[doc][feature],bins=len(labels),labels=labels)
+    for doc in range(len(test_data)):    
+        for feature in ('F1','F2','F3','F5','F6','F7','F9','F10','F11','F12'):
+            mean=sum(test_data[doc][feature])/len(test_data[doc][feature])
+            for element in range(len(test_data[doc][feature])):
+                if test_data[doc][feature][element]==0:
+                    test_data[doc][feature][element]=mean
+            test_data[doc][feature]=pd.cut(test_data[doc][feature],bins=len(labels),labels=labels)
+    #log.write("Preparing data testing")
+    log.write("Training Naive Bayes")
+    nb_clf = NaiveBayes(train_data,test_data)
+    nb_clf.fit()
+    t1 = time.time()
+    log.write("Testing Naive Bayes")
+    predicted_labels = nb_clf.predict()
+    t2 = time.time()
+    print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
+    return predicted_labels
+    #predicted_accuracy = nb_clf.evaluate()#DELETE
+    #return predicted_labels,predicted_accuracy #DELETE
+    
 def dtree_experiment(train_data, validation_data, test_data):
     conf = {"tree": "cls", "criterion":"entropy", "prune":"impurity", "max_depth":5}
     # merge train and validation
