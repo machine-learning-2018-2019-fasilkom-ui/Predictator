@@ -12,7 +12,7 @@ import json
 import pycrfsuite
 
 ANALYSIS_DATA_DIR = "analysis/"
-STOP_MIN_THRESHOLD = 10
+STOP_MIN_THRESHOLD = 3
 STOP_MAX_THRESHOLD_PERCENTAGE = 0.999
 
 def term_frequency_counter(data):

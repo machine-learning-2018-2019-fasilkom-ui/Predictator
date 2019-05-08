@@ -6,15 +6,16 @@ class Log():
     LOG_DIRECTORY = "log/"
     def __init__(self, file_name="log_{}.txt".format(int(time.time())) ):
         if not os.path.exists(self.LOG_DIRECTORY): os.makedirs(self.LOG_DIRECTORY)
-        self.log_file = open(self.LOG_DIRECTORY+file_name, "w")
+        self.log_file = self.LOG_DIRECTORY+file_name
 
     def write(self, msg):
         print(msg)
-        self.log_file.write(str(msg))
-        self.log_file.write("\n")
+        with open (self.log_file, "a") as f:
+            f.write(str(msg))
+            f.write("\n")
 
-    def close(self):
-        self.log_file.close()
+    # def close(self):
+    #     self.log_file.close()
 
 if __name__ == "__main__":
     pass

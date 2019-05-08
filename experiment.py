@@ -12,6 +12,7 @@ from log import Log
 import numpy as np
 import json
 import time
+import gc
 from datetime import timedelta
 from sklearn.svm import SVC
 
@@ -48,7 +49,7 @@ def negative_sampling(matrix, label):
     return new_matrix, new_label
 
 def svm_experiment(train_data, validation_data, test_data):
-    conf = {"kernel": "linear_kernel", "degree":2, "sigma":50, "C":100}
+    conf = {"kernel": "rbf_kernel", "degree":2, "sigma":10, "C":1000}
     # merge train and validation
     log.write(conf)
     log.write("Preparing data training")
@@ -98,6 +99,7 @@ def svm_experiment(train_data, validation_data, test_data):
         predicted_labels = [1 if i>-1 else 0 for i in predicted_labels]
         for idx, label in enumerate(predicted_labels):
             all_prediction[idx][label] += 1
+        # gc.collect()
     predicted_labels = np.argmax(all_prediction, axis=1)
     return predicted_labels
 
@@ -170,7 +172,7 @@ def main():
     # pre_processed_data = preprocessing_data(flatten(data))
     log.write("Feature extraction...")
     feature_data = feature_extraction(flatten(data))
-    for fold in range(1,6):
+    for fold in range(3,6):
         log.write("Get fold {} of IndoSum dataset".format(fold))
         train_data, val_data, test_data = get_data(fold, feature_data)
         for method in methods_ready:
@@ -223,7 +225,8 @@ def main():
             log.write("ROUGE-L score        = %f"%(sum(rouge_score["L"])/len(test_data)))
             log.write("ROUGE-L precision    = %f"%(sum(rouge_precision["L"])/len(test_data)))
             log.write("ROUGE-L recall       = %f"%(sum(rouge_recall["L"])/len(test_data)))
-    log.close()
+        gc.collect()
+    # log.close()
 
 if __name__ == "__main__":
     main()
