@@ -144,8 +144,9 @@ def nb_experiment(train_data,validation_data,test_data):
     predicted_labels = nb_clf.predict()
     t2 = time.time()
     print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
-    return predicted_labels
     #predicted_accuracy = nb_clf.evaluate()#DELETE
+    predicted_labels=[val for sublist in predicted_labels for val in sublist]
+    return predicted_labels
     #return predicted_labels,predicted_accuracy #DELETE
     
 def dtree_experiment(train_data, validation_data, test_data):
