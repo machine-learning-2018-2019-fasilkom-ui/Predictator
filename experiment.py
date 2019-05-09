@@ -103,7 +103,7 @@ def svm_experiment(train_data, validation_data, test_data):
     return predicted_labels
 
 def nb_experiment(train_data,validation_data,test_data):
-    conf={"naivebayes"}
+    conf={"catagory" : "lowmedhigh"}
     log.write(conf)
     log.write("Preparing data training")
     #Preparing the data
@@ -122,14 +122,14 @@ def nb_experiment(train_data,validation_data,test_data):
     for doc in range(len(test_data)):    
             test_data[doc]['gold_labels']=[val for sublist in test_data[doc]['gold_labels'] for val in sublist]
     for doc in range(len(train_data)):    
-        for feature in ('F1','F2','F3','F5','F6','F7','F9','F10','F11','F12'):
+        for feature in feature_attr_name:
             mean=sum(train_data[doc][feature])/len(train_data[doc][feature])
             for element in range(len(train_data[doc][feature])):
                 if train_data[doc][feature][element]==0:
                     train_data[doc][feature][element]=mean
             train_data[doc][feature]=pd.cut(train_data[doc][feature],bins=len(labels),labels=labels)
     for doc in range(len(test_data)):    
-        for feature in ('F1','F2','F3','F5','F6','F7','F9','F10','F11','F12'):
+        for feature in feature_attr_name:
             mean=sum(test_data[doc][feature])/len(test_data[doc][feature])
             for element in range(len(test_data[doc][feature])):
                 if test_data[doc][feature][element]==0:
@@ -137,7 +137,7 @@ def nb_experiment(train_data,validation_data,test_data):
             test_data[doc][feature]=pd.cut(test_data[doc][feature],bins=len(labels),labels=labels)
     #log.write("Preparing data testing")
     log.write("Training Naive Bayes")
-    nb_clf = NaiveBayes(train_data,test_data)
+    nb_clf = NaiveBayes(train_data,test_data,feature_attr_name,labels)
     nb_clf.fit()
     t1 = time.time()
     log.write("Testing Naive Bayes")
@@ -145,7 +145,7 @@ def nb_experiment(train_data,validation_data,test_data):
     t2 = time.time()
     print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
     #predicted_accuracy = nb_clf.evaluate()#DELETE
-    predicted_labels=[val for sublist in predicted_labels for val in sublist]
+    #predicted_labels=[val for sublist in predicted_labels for val in sublist]
     return predicted_labels
     #return predicted_labels,predicted_accuracy #DELETE
     
