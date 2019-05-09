@@ -9,21 +9,22 @@ from evaluation import Evaluator
 from rouge_evaluation import Rouge
 from log import Log
 
+import psutil
 import numpy as np
 import json
 import time
 import gc
 from datetime import timedelta
-from sklearn.svm import SVC
+# from sklearn.svm import SVC
 
 methods_ready = ["svm"]
 LOG_FILE_NAME = "log_{}.txt"
 PRECOMP_PREPROCESSED_FILE = "analysis/precomputed_dataset.jsonl"
-FEATURE_SET_FILE = "analysis/feature_set.jsonl"
+FEATURE_SET_FILE = "analysis/feature_set_new_feature.jsonl"
 
 log = Log()
 flatten = lambda l: [item for sublist in l for item in sublist]
-feature_attr_name = ["F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12"]
+feature_attr_name = ["F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12", "F13", "F14"]
 preprocessing_attr = ["stopped_paragraphs", "stemmed_paragraphs", "lemma_paragraphs", "word_tag"]
 
 def lead3_experiment(test_data):
@@ -49,7 +50,7 @@ def negative_sampling(matrix, label):
     return new_matrix, new_label
 
 def svm_experiment(train_data, validation_data, test_data):
-    conf = {"kernel": "rbf_kernel", "degree":2, "sigma":10, "C":1000}
+    conf = {"kernel": "rbf_kernel", "degree":2, "sigma":1, "C":100}
     # merge train and validation
     log.write(conf)
     log.write("Preparing data training")
@@ -58,8 +59,6 @@ def svm_experiment(train_data, validation_data, test_data):
     train_feature_matrix = []
     train_label_vector = []
     for doc in train_data:
-        # print(len(flatten(doc["paragraphs"])))
-        # print(doc)
         for idx, sentences in enumerate(flatten(doc["paragraphs"])):
             sentence_feature = []
             for attr in feature_attr_name:
@@ -99,7 +98,6 @@ def svm_experiment(train_data, validation_data, test_data):
         predicted_labels = [1 if i>-1 else 0 for i in predicted_labels]
         for idx, label in enumerate(predicted_labels):
             all_prediction[idx][label] += 1
-        # gc.collect()
     predicted_labels = np.argmax(all_prediction, axis=1)
     return predicted_labels
 
@@ -165,6 +163,50 @@ def feature_extraction(data):
     data = {i["id"]: i for i in data}
     return data
 
+def label_evaluation(test_data, predicted_labels):
+    gold_labels = flatten([flatten(i["gold_labels"]) for i in test_data])
+    gold_labels = [1 if i else 0 for i in gold_labels]
+    metric_evaluation = Evaluator()
+    metric_evaluation.compute_all(gold_labels, predicted_labels)
+    log.write("Confusion Matrix :")
+    log.write(metric_evaluation.confusion_matrix)
+    log.write("Accuracy     = %f"%metric_evaluation.accuracy)
+    log.write("Precision    = %f"%metric_evaluation.precision)
+    log.write("Recall       = %f"%metric_evaluation.recall)
+    log.write("F1 Score     = %f"%metric_evaluation.f1_score)
+
+
+def rouge_evaluation(test_data, predicted_labels):
+    rouge_score = {"1": [], "2":[], "L":[]}
+    rouge_precision = {"1": [], "2":[], "L":[]}
+    rouge_recall = {"1": [], "2":[], "L":[]}
+    sentence_offset = 0
+    for doc in test_data:
+        n_sentence = len(flatten(doc["paragraphs"]))
+        selected_summary = make_summary(doc, predicted_labels[sentence_offset:sentence_offset+n_sentence])
+        sentence_offset += n_sentence
+        rouge_eval = Rouge().compute_all(doc["summary"], selected_summary)
+
+        rouge_score["1"].append(rouge_eval.rouge_1_score)
+        rouge_score["2"].append(rouge_eval.rouge_2_score)
+        rouge_score["L"].append(rouge_eval.rouge_l_score)
+        rouge_precision["1"].append(rouge_eval.rouge_1_precision)
+        rouge_precision["2"].append(rouge_eval.rouge_2_precision)
+        rouge_precision["L"].append(rouge_eval.rouge_l_precision)
+        rouge_recall["1"].append(rouge_eval.rouge_1_recall)
+        rouge_recall["2"].append(rouge_eval.rouge_2_recall)
+        rouge_recall["L"].append(rouge_eval.rouge_l_recall)
+    log.write("Average rouge performance :")
+    log.write("ROUGE-1 score        = %f"%(sum(rouge_score["1"])/len(test_data)))
+    log.write("ROUGE-1 precision    = %f"%(sum(rouge_precision["1"])/len(test_data)))
+    log.write("ROUGE-1 recall       = %f"%(sum(rouge_recall["1"])/len(test_data)))
+    log.write("ROUGE-2 score        = %f"%(sum(rouge_score["2"])/len(test_data)))
+    log.write("ROUGE-2 precision    = %f"%(sum(rouge_precision["2"])/len(test_data)))
+    log.write("ROUGE-2 recall       = %f"%(sum(rouge_recall["2"])/len(test_data)))
+    log.write("ROUGE-L score        = %f"%(sum(rouge_score["L"])/len(test_data)))
+    log.write("ROUGE-L precision    = %f"%(sum(rouge_precision["L"])/len(test_data)))
+    log.write("ROUGE-L recall       = %f"%(sum(rouge_recall["L"])/len(test_data)))
+
 def main():
     # get precomputed file / compute preprocessing & feature
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
@@ -172,61 +214,25 @@ def main():
     # pre_processed_data = preprocessing_data(flatten(data))
     log.write("Feature extraction...")
     feature_data = feature_extraction(flatten(data))
-    for fold in range(3,6):
+    for fold in range(2,6):
         log.write("Get fold {} of IndoSum dataset".format(fold))
         train_data, val_data, test_data = get_data(fold, feature_data)
         for method in methods_ready:
+            # log.write("Evaluating {}".format(method))
             log.write("==================================")
             log.write("Prediction using {}".format(method))
             log.write("==================================")
+
             predicted_labels = run_experiment(train_data, val_data, test_data, method)
-
-            log.write("Evaluating {}".format(method))
-
-            gold_labels = flatten([flatten(i["gold_labels"]) for i in test_data])
-            gold_labels = [1 if i else 0 for i in gold_labels]
-            metric_evaluation = Evaluator()
-            metric_evaluation.compute_all(gold_labels, predicted_labels)
-            log.write("Confusion Matrix :")
-            log.write(metric_evaluation.confusion_matrix)
-            log.write("Accuracy     = %f"%metric_evaluation.accuracy)
-            log.write("Precision    = %f"%metric_evaluation.precision)
-            log.write("Recall       = %f"%metric_evaluation.recall)
-            log.write("F1 Score     = %f"%metric_evaluation.f1_score)
+            log.write("Acc/P/R evaluation")
+            label_evaluation(test_data, predicted_labels)
             log.write("ROUGE evaluation")
-
-            rouge_score = {"1": [], "2":[], "L":[]}
-            rouge_precision = {"1": [], "2":[], "L":[]}
-            rouge_recall = {"1": [], "2":[], "L":[]}
-
-            sentence_offset = 0
-            for doc in test_data:
-                n_sentence = len(flatten(doc["paragraphs"]))
-                selected_summary = make_summary(doc, predicted_labels[sentence_offset:sentence_offset+n_sentence])
-                sentence_offset += n_sentence
-                rouge_eval = Rouge().compute_all(doc["summary"], selected_summary)
-
-                rouge_score["1"].append(rouge_eval.rouge_1_score)
-                rouge_score["2"].append(rouge_eval.rouge_2_score)
-                rouge_score["L"].append(rouge_eval.rouge_l_score)
-                rouge_precision["1"].append(rouge_eval.rouge_1_precision)
-                rouge_precision["2"].append(rouge_eval.rouge_2_precision)
-                rouge_precision["L"].append(rouge_eval.rouge_l_precision)
-                rouge_recall["1"].append(rouge_eval.rouge_1_recall)
-                rouge_recall["2"].append(rouge_eval.rouge_2_recall)
-                rouge_recall["L"].append(rouge_eval.rouge_l_recall)
-            log.write("Average rouge performance :")
-            log.write("ROUGE-1 score        = %f"%(sum(rouge_score["1"])/len(test_data)))
-            log.write("ROUGE-1 precision    = %f"%(sum(rouge_precision["1"])/len(test_data)))
-            log.write("ROUGE-1 recall       = %f"%(sum(rouge_recall["1"])/len(test_data)))
-            log.write("ROUGE-2 score        = %f"%(sum(rouge_score["2"])/len(test_data)))
-            log.write("ROUGE-2 precision    = %f"%(sum(rouge_precision["2"])/len(test_data)))
-            log.write("ROUGE-2 recall       = %f"%(sum(rouge_recall["2"])/len(test_data)))
-            log.write("ROUGE-L score        = %f"%(sum(rouge_score["L"])/len(test_data)))
-            log.write("ROUGE-L precision    = %f"%(sum(rouge_precision["L"])/len(test_data)))
-            log.write("ROUGE-L recall       = %f"%(sum(rouge_recall["L"])/len(test_data)))
+            rouge_evaluation(test_data, predicted_labels )
+        del predicted_labels
+        del train_data
+        del val_data
+        del test_data
         gc.collect()
-    # log.close()
 
 if __name__ == "__main__":
     main()

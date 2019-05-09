@@ -10,12 +10,12 @@ import numpy as np
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
-def idf_counter(data):
+def idf_counter(data, attr_to_compute="paragraphs"):
     document_frequency = defaultdict(int)
     idf = defaultdict(float)
     n_doc = len(data)
     for i in data:
-        paragraphs = flatten(i["paragraphs"])
+        paragraphs = flatten(i[attr_to_compute])
         words = set(flatten(paragraphs))
         for word in words:
             document_frequency[word] += 1
@@ -23,11 +23,11 @@ def idf_counter(data):
         idf[k] = np.log2(1.0*n_doc/v)
     return idf
 
-def isf_counter(data):
+def isf_counter(data, attr_to_compute="paragraphs"):
     all_isf = []
     for idx,i in enumerate(data):
         # all_isf.append([])
-        sentences = flatten(i["paragraphs"])
+        sentences = flatten(i[attr_to_compute])
         n_sentence = len(sentences)
         sentence_frequency = defaultdict(int)
         isf = defaultdict(float)
@@ -43,10 +43,10 @@ def isf_counter(data):
         # break
     return all_isf
 
-def weighted_doc_tf(data):
+def weighted_doc_tf(data, attr_to_compute="paragraphs"):
     tf = []
     for i in data:
-        paragraphs = flatten(i["paragraphs"])
+        paragraphs = flatten(i[attr_to_compute])
         words = flatten(paragraphs)
         doc_tf = defaultdict(float)
         term_count = len(words)
@@ -57,8 +57,8 @@ def weighted_doc_tf(data):
         tf.append(doc_tf)
     return tf
 
-def f1(s,S):
-    flattened=[val for sublist in S["paragraphs"] for val in sublist]
+def f1(s,S, attr_to_compute="paragraphs"):
+    flattened=[val for sublist in S[attr_to_compute] for val in sublist]
     temp=deepcopy(flattened)
     temp.remove(s)
     flattened2=[val for sublist in temp for val in sublist]
@@ -87,40 +87,40 @@ def f7(s,S):
         res = 1
     return res
 
-def f1_extraction(data):
+def f1_extraction(data, attr_to_compute="paragraphs"):
     # similarity sentence
     for doc in data:
         doc["F1"]=[]
-        for paragraph in doc["paragraphs"]:
+        for paragraph in doc[attr_to_compute]:
             for sentence in paragraph:
-                res=f1(sentence,doc)
+                res=f1(sentence,doc, attr_to_compute)
                 doc["F1"].append(res)
         max_f1 = max(doc["F1"])
         doc["F1"] = [f1_val/max_f1 for f1_val in doc["F1"]]
     return data
 
-def f2_extraction(data):
+def f2_extraction(data, attr_to_compute="paragraphs"):
     flatten=lambda l: [item for sublist in l for item in sublist]
     cout=0 #del
     for doc in data:
         doc["F2"]=[]
         flag=1
-        for idx,paragraph in enumerate(doc["paragraphs"]):
+        for idx,paragraph in enumerate(doc[attr_to_compute]):
             list_f2=[]
             for sentence in paragraph:
                 temp=deepcopy(doc)
-                temp["paragraphs"].pop(idx)
-                flattened=[val for sublist in temp["paragraphs"] for val in sublist]
+                temp[attr_to_compute].pop(idx)
+                flattened=[val for sublist in temp[attr_to_compute] for val in sublist]
                 flattened2=[val for sublist in flattened for val in sublist]
                 res=len(list(set(sentence).intersection(flattened2)))
                 temp=deepcopy(doc)
-                flattened=[val for sublist in temp["paragraphs"] for val in sublist]
+                flattened=[val for sublist in temp[attr_to_compute] for val in sublist]
                 if flag==1:
                     f=[]
-                    for j in range(len(doc["paragraphs"])):
-                        for i in range(len(doc["paragraphs"][j])):
+                    for j in range(len(doc[attr_to_compute])):
+                        for i in range(len(doc[attr_to_compute][j])):
                             a=flattened[i]
-                            temp=deepcopy(doc["paragraphs"])
+                            temp=deepcopy(doc[attr_to_compute])
                             temp.pop(j)
                             flattened2=[val for sublist in [val for sublist in temp for val in sublist] for val in sublist]
                             d2=list(set(a).intersection(flattened2))
@@ -141,11 +141,11 @@ def f2_extraction(data):
         doc["F2"]=flatten(doc["F2"])
     return data
 
-def f3_extraction(data):
+def f3_extraction(data, attr_to_compute="paragraphs"):
     # Unique Formatting
     for doc in data:
         doc["F3"]=[]
-        for paragraph in doc["paragraphs"]:
+        for paragraph in doc[attr_to_compute]:
             list_f3=[]
             for sentence in paragraph:
                 list_f3.append(f3(sentence,doc))
@@ -158,13 +158,13 @@ def f4_extraction(data):
     # NOT EXTRACTED DUE TO LACK OF CUE PHRASES DATA
     pass
 
-def f5_extraction(data):
+def f5_extraction(data, attr_to_compute="paragraphs"):
     # TF-IDF
-    tf = weighted_doc_tf(data)
-    idf = idf_counter(data)
+    tf = weighted_doc_tf(data, attr_to_compute)
+    idf = idf_counter(data, attr_to_compute)
     for idx, doc in enumerate(data):
         doc["F5"] = []
-        for i,paragraph in enumerate(doc["paragraphs"]):
+        for i,paragraph in enumerate(doc[attr_to_compute]):
             doc["F5"].append([])
             doc["F5"][i] = []
             for j,sentence in enumerate(paragraph):
@@ -172,17 +172,17 @@ def f5_extraction(data):
                 for word in sentence:
                     doc["F5"][i][j] += tf[i][word]*idf[word]
         doc_max_tf_idf = max(flatten(doc["F5"]))
-        for i,paragraph in enumerate(doc["paragraphs"]):
+        for i,paragraph in enumerate(doc[attr_to_compute]):
             for j,sentence in enumerate(paragraph):
                 doc["F5"][i][j] /= doc_max_tf_idf
         doc["F5"] = flatten(doc["F5"])
     return data
 
-def f6_extraction(data):
+def f6_extraction(data, attr_to_compute="paragraphs"):
     # unigram overlap sentencce with title
     for doc in data:
         doc["F6"]=[]
-        for paragraph in doc["paragraphs"]:
+        for paragraph in doc[attr_to_compute]:
             list_f6=[]
             for sentence in paragraph:
                 list_f6.append(f6(sentence,doc))
@@ -190,11 +190,11 @@ def f6_extraction(data):
         doc["F6"]=flatten(doc["F6"])
     return data
 
-def f7_extraction(data):
+def f7_extraction(data, attr_to_compute="paragraphs"):
     # Paragraph location
     for doc in data:
         doc["F7"]=[]
-        for paragraph in doc["paragraphs"]:
+        for paragraph in doc[attr_to_compute]:
             list_f7=[]
             n_sentence = len(paragraph)
             for idx, sentence in enumerate(paragraph):
@@ -208,7 +208,7 @@ def f8_extraction(data):
     # NOT EXTRACTED DUE TO LACK OF PHRASES INFORMATION
     pass
 
-def f9_extraction(data):
+def f9_extraction(data, attr_to_compute="paragraphs"):
     #Sscorecore for sentences contains Proper Noun
     # Must run pos_tagger() first
     for category in data:
@@ -228,13 +228,13 @@ def f9_extraction(data):
         category["F9"] = flatten(category["F9"])
     return data
 
-def f10_extraction(data):
+def f10_extraction(data, attr_to_compute="paragraphs"):
     # TF-ISF
-    tf = weighted_doc_tf(data)
-    isf = isf_counter(data)
+    tf = weighted_doc_tf(data, attr_to_compute)
+    isf = isf_counter(data, attr_to_compute)
     for idx, doc in enumerate(data):
         doc["F10"] = []
-        for i,paragraph in enumerate(doc["paragraphs"]):
+        for i,paragraph in enumerate(doc[attr_to_compute]):
             doc["F10"].append([])
             doc["F10"][i] = []
             for j,sentence in enumerate(paragraph):
@@ -244,7 +244,7 @@ def f10_extraction(data):
             # Normalization
         doc_max_tf_isf = max(flatten(doc["F10"]))
 
-        for i,paragraph in enumerate(doc["paragraphs"]):
+        for i,paragraph in enumerate(doc[attr_to_compute]):
             for j,sentence in enumerate(paragraph):
                 doc["F10"][i][j] /= doc_max_tf_isf
         doc["F10"] = flatten(doc["F10"])
@@ -252,11 +252,11 @@ def f10_extraction(data):
 
 # Text Rank get score
 
-def f11_extraction(data):
+def f11_extraction(data, attr_to_compute="paragraphs"):
     for category in data:
         category['F11'] = []
         temp = []
-        for paragraph in category['paragraphs']:
+        for paragraph in category[attr_to_compute]:
             list_score_textrank = []
             for kalimat in paragraph:
                 filtered_sentences = filter_sentences([kalimat])
@@ -277,15 +277,15 @@ def f11_extraction(data):
     return data
 
 
-def f12_extraction(data):
+def f12_extraction(data, attr_to_compute="paragraphs"):
     # sentence centrality
     # ratio unigram overlap sentence with overall unigram in doc
     for category in data:
         category['F12'] = []
-        for paragraph in category['paragraphs']:
+        for paragraph in category[attr_to_compute]:
             list_score_overlap = []
             for kalimat in paragraph:
-                kalimat_lain = list(category['paragraphs'])
+                kalimat_lain = list(category[attr_to_compute])
                 kalimat_lain = flatten(kalimat_lain)
                 kalimat_lain.remove(kalimat)
                 kalimat_lain = flatten(kalimat_lain)
@@ -294,6 +294,29 @@ def f12_extraction(data):
                 list_score_overlap.append(overlap_score)
             category['F12'].append(list_score_overlap)
         category["F12"] = flatten(category["F12"])
+    return data
+
+def f13_extraction(data, attr_to_compute="paragraphs"):
+    # Sentence Length
+    for doc in data:
+        doc["F13"] = []
+        for paragraph in doc[attr_to_compute]:
+            for sentence in paragraph:
+                doc["F13"].append(len(sentence))
+        max_n = max(doc["F13"])
+        doc["F13"] = [i/max_n for i in doc["F13"]]
+    return data
+
+def f14_extraction(data, attr_to_compute="paragraphs"):
+    # Sentence Position in document
+    for doc in data:
+        doc["F14"] = []
+        n_sentence = len(flatten(doc[attr_to_compute]))
+        sentence_counter = 0
+        for paragraph in doc[attr_to_compute]:
+            for sentence in paragraph:
+                doc["F14"].append(1-(sentence_counter/n_sentence))
+                sentence_counter += 1
     return data
 
 def compute_feature(data):
@@ -306,11 +329,14 @@ def compute_feature(data):
     data = f9_extraction(data)
     data = f10_extraction(data)
     data = f11_extraction(data)
+    data = f12_extraction(data)
+    data = f13_extraction(data)
+    data = f14_extraction(data)
     return data
 
 def save_feature(data, precomputed=False, file_dir="analysis/feature_set.jsonl"):
     data = data if precomputed else compute_feature(data)
-    selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12",'gold_labels']
+    selected_field = ["id", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12", "F13", "F14",'gold_labels']
     with open(file_dir, "w") as f:
         for datum in data:
             selected_data = {}
@@ -380,16 +406,17 @@ def demo():
     data = f7_extraction(data)
     print("F9")
     data = f9_extraction(data)
-    #print(data[0])
     print("F10")
     data = f10_extraction(data)
     print("F11")
     data = f11_extraction(data)
-    #print(data[0])
     print("F12")
     data = f12_extraction(data)
-    #print(data[0])
-    save_feature(data, precomputed=True)
+    print("F13")
+    data = f13_extraction(data)
+    print("F14")
+    data = f14_extraction(data)
+    save_feature(data, precomputed=True, file_dir="analysis/feature_set_new_feature.jsonl")
 
 if __name__ == "__main__":
     demo()

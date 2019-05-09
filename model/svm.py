@@ -66,27 +66,6 @@ class SVM:
         prob.solve()
         t2 = time.time()
         print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
-        print(x.value)
-
-        # P = cvxopt.matrix(np.outer(y,y) * K)
-        # q = cvxopt.matrix(np.ones(n) * -1)
-        # A = cvxopt.matrix(y, (1,n), 'd')
-        # b = cvxopt.matrix(0.0)
-        # if self.C is None:
-        #     G = cvxopt.matrix(np.diag(np.ones(n) * -1))
-        #     h = cvxopt.matrix(np.zeros(n))
-        # else:
-        #     G = cvxopt.matrix(np.vstack((np.diag(np.ones(n) * -1), np.identity(n))))
-        #     h = cvxopt.matrix(np.hstack((np.zeros(n), np.ones(n) * self.C)))
-        # cvxopt.solvers.options['show_progress'] = False
-        # cvxopt.solvers.options['abstol'] = 1e-10
-        # cvxopt.solvers.options['reltol'] = 1e-10
-        # cvxopt.solvers.options['feastol'] = 1e-10
-        # t1 = time.time()
-        # res = cvxopt.solvers.qp(P, q, G, h, A, b)
-        # t2 = time.time()
-        # print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
-        # a = np.ravel(res['x'])
         return x.value, K
 
     def fit(self, X, y, truth_label=True):
