@@ -62,12 +62,12 @@ class NaiveBayes:
                 self.plabel.append(self.test_X[doc]['gold_labels'][sentence])
         for sentence in range(len(self.plabel)):
             if self.predicted[sentence] == 0:
-                if self.test_X[sentence] == 0:
+                if self.plabel[sentence] == 0:
                     self.tp += 1
                 else:
                     self.fp += 1
             else:
-                if self.test_X[sentence] == 1:
+                if self.plabel[sentence] == 1:
                     self.tn += 1
                 else:
                     self.fn += 1
