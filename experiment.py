@@ -1,7 +1,8 @@
 from data import open_dataset
 from preprocessor import pre_processed_all
 from feature_extraction import compute_feature
-
+import pandas as pd
+from model.naivebayes import NaiveBayes,count
 from model.lead3 import Lead3
 from model.svm import SVM
 
@@ -97,11 +98,174 @@ def svm_experiment(train_data, validation_data, test_data):
     predicted_labels = [1 if i>-1 else 0 for i in predicted_labels]
     return predicted_labels
 
+def nb_experiment(train_data,validation_data,test_data):
+    conf={"catagory" : "lowmedhigh"}
+    log.write(conf)
+    log.write("Preparing data training")
+    #Preparing the data
+    labels=['low','medium','high']
+    train_data = flatten([train_data, validation_data])
+    for doc in range(len(train_data)):    
+            for val1 in range(len(train_data[doc]['gold_labels'])):
+                for val2 in range(len(train_data[doc]['gold_labels'][val1])):
+                    train_data[doc]['gold_labels'][val1][val2]=int(train_data[doc]['gold_labels'][val1][val2])
+    for doc in range(len(train_data)):    
+            train_data[doc]['gold_labels']=[val for sublist in train_data[doc]['gold_labels'] for val in sublist]
+    for doc in range(len(test_data)):    
+            for val1 in range(len(test_data[doc]['gold_labels'])):
+                for val2 in range(len(test_data[doc]['gold_labels'][val1])):
+                    test_data[doc]['gold_labels'][val1][val2]=int(test_data[doc]['gold_labels'][val1][val2])
+    for doc in range(len(test_data)):    
+            test_data[doc]['gold_labels']=[val for sublist in test_data[doc]['gold_labels'] for val in sublist]
+    for doc in range(len(train_data)):    
+        for feature in feature_attr_name:
+            mean=sum(train_data[doc][feature])/len(train_data[doc][feature])
+            for element in range(len(train_data[doc][feature])):
+                if train_data[doc][feature][element]==0:
+                    train_data[doc][feature][element]=mean
+            train_data[doc][feature]=pd.cut(train_data[doc][feature],bins=len(labels),labels=labels)
+    for doc in range(len(test_data)):    
+        for feature in feature_attr_name:
+            mean=sum(test_data[doc][feature])/len(test_data[doc][feature])
+            for element in range(len(test_data[doc][feature])):
+                if test_data[doc][feature][element]==0:
+                    test_data[doc][feature][element]=mean
+            test_data[doc][feature]=pd.cut(test_data[doc][feature],bins=len(labels),labels=labels)
+    #log.write("Preparing data testing")
+    log.write("Training Naive Bayes")
+    nb_clf = NaiveBayes(train_data,test_data,feature_attr_name,labels)
+    nb_clf.fit()
+    t1 = time.time()
+    log.write("Testing Naive Bayes")
+    predicted_labels = nb_clf.predict()
+    t2 = time.time()
+    print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
+    #predicted_accuracy = nb_clf.evaluate()#DELETE
+    #predicted_labels=[val for sublist in predicted_labels for val in sublist]
+    return predicted_labels
+    #return predicted_labels,predicted_accuracy #DELETE
+    
+def dtree_experiment(train_data, validation_data, test_data):
+    conf = {"tree": "cls", "criterion":"entropy", "prune":"impurity", "max_depth":5}
+    # merge train and validation
+    log.write(conf)
+    log.write("Preparing data training")
+    # build feature matrix
+    train_data = flatten([train_data, validation_data])
+    train_feature_matrix = []
+    train_label_vector = []
+    for doc in train_data:
+        # print(len(flatten(doc["paragraphs"])))
+        # print(doc)
+        for idx, sentences in enumerate(flatten(doc["paragraphs"])):
+            sentence_feature = []
+            for attr in feature_attr_name:
+                sentence_feature.append(doc[attr][idx])
+            train_feature_matrix.append(sentence_feature)
+            train_label_vector.append(flatten(doc["gold_labels"])[idx])
+    n_data = len(train_feature_matrix)
+    split_length = int(n_data/20)
+    offset = 0
+    X = train_feature_matrix
+    y = train_label_vector
+    log.write("Preparing data testing")
+    test_feature_matrix = []
+    for doc in test_data:
+        for idx, sentences in enumerate(flatten(doc["paragraphs"])):
+            sentence_feature = []
+            for attr in feature_attr_name:
+                sentence_feature.append(doc[attr][idx])
+            test_feature_matrix.append(sentence_feature)
+    # predict test_data
+    test_feature_matrix = np.array(test_feature_matrix)
+    all_prediction = np.zeros((len(test_feature_matrix), 2))
+    for i in range(1):
+        train_feature_matrix = np.array(X[offset:(offset+split_length)])
+        train_label_vector = np.array(y[offset:(offset+split_length)])
+        offset += split_length
+        # run_training
+        train_feature_matrix, train_label_vector = negative_sampling(train_feature_matrix, train_label_vector)
+        log.write("Training Decision Tree")
+        dtree_clf = DecisionTree(tree='cls', criterion='entropy', prune='depth', max_depth=3)
+        train_label_vector = [1 if arr==True else 0 for arr in train_label_vector]
+        #train_feature_matrix = np.array(train_feature_matrix)
+        #print(len(train_feature_matrix))
+        train_label_vector = np.array(train_label_vector)
+        dtree_clf.fit(train_feature_matrix, train_label_vector)
+        t1 = time.time()
+        log.write("Testing Decision Tree")
+        predicted_labels, val = svm_clf.predict(test_feature_matrix)
+        t2 = time.time()
+        print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
+        predicted_labels = [1 if i>-1 else 0 for i in predicted_labels]
+        for idx, label in enumerate(predicted_labels):
+            all_prediction[idx][label] += 1
+    predicted_labels = np.argmax(all_prediction, axis=1)
+    return predicted_labels
+
+def ann_experiment(train_data, validation_data, test_data):
+    conf = {"layes_size": "(196,10)"}
+    # merge train and validation
+    log.write(conf)
+    log.write("Preparing data training")
+    # build feature matrix
+    train_data = flatten([train_data, validation_data])
+    train_feature_matrix = []
+    train_label_vector = []
+    for doc in train_data:
+        for idx, sentences in enumerate(flatten(doc["paragraphs"])):
+            sentence_feature = []
+            for attr in feature_attr_name:
+                sentence_feature.append(doc[attr][idx])
+            train_feature_matrix.append(sentence_feature)
+            train_label_vector.append(flatten(doc["gold_labels"])[idx])
+    n_data = len(train_feature_matrix)
+    split_length = int(n_data/20)
+    offset = 0
+    X = train_feature_matrix
+    y = train_label_vector
+    log.write("Preparing data testing")
+    test_feature_matrix = []
+    test_label_vector = []
+    for doc in test_data:
+        for idx, sentences in enumerate(flatten(doc["paragraphs"])):
+            sentence_feature = []
+            for attr in feature_attr_name:
+                sentence_feature.append(doc[attr][idx])
+            test_feature_matrix.append(sentence_feature)
+            test_label_vector.append(flatten(doc["gold_labels"])[idx])
+    # predict test_data
+    test_feature_matrix = np.array(test_feature_matrix)
+    all_prediction = np.zeros((len(test_feature_matrix), 2))
+    for i in range(1):
+        train_feature_matrix = np.array(X[offset:(offset+split_length)])
+        train_label_vector = np.array(y[offset:(offset+split_length)])
+        offset += split_length
+        # run_training
+        train_feature_matrix, train_label_vector = negative_sampling(train_feature_matrix, train_label_vector)
+        log.write("Training ANN")
+        ann_clf = ANN(layers_size=[196, 10])
+        train_label_vector = [1 if arr==True else 0 for arr in train_label_vector]
+        #train_feature_matrix = np.array(train_feature_matrix)
+        print(len(train_feature_matrix))
+        train_label_vector = np.array(train_label_vector)
+        ann_clf.fit(train_feature_matrix, train_label_vector, learning_rate=0.1, n_iterations=100)
+        t1 = time.time()
+        log.write("Testing ANN")
+        predicted_labels = ann_clf.predict(test_feature_matrix, test_label_vector)
+        t2 = time.time()
+        for idx, label in enumerate(predicted_labels):
+            all_prediction[idx][label] += 1
+    predicted_labels = np.argmax(all_prediction, axis=1)
+    return predicted_labels
+
 def run_experiment(train_data, validation_data, test_data, method):
     if method=="lead3":
         predicted_labels = lead3_experiment(test_data)
     elif method=="svm":
         predicted_labels = svm_experiment(train_data, validation_data, test_data)
+    elif method=="nb":
+        predicted_labels = nb_experiment(train_data,validation_data,test_data)
     else:
         raise(InvalidMethod())
     return predicted_labels
