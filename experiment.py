@@ -23,7 +23,7 @@ FEATURE_SET_FILE = "analysis/feature_set.jsonl"
 
 log = Log()
 flatten = lambda l: [item for sublist in l for item in sublist]
-feature_attr_name = ["F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12"]
+feature_attr_name = ["F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F11", "F12", "F13", "F14"]
 preprocessing_attr = ["stopped_paragraphs", "stemmed_paragraphs", "lemma_paragraphs", "word_tag"]
 
 def lead3_experiment(test_data):
@@ -212,6 +212,8 @@ def run_experiment(train_data, validation_data, test_data, method):
         predicted_labels = lead3_experiment(test_data)
     elif method=="svm":
         predicted_labels = svm_experiment(train_data, validation_data, test_data)
+    elif method=="nb":
+        predicted_labels = nb_experiment(train_data,validation_data,test_data)
     else:
         raise(InvalidMethod())
     return predicted_labels
