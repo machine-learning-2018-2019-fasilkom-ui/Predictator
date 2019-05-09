@@ -11,16 +11,17 @@ def count(data,colname,label,target):
         return cnt
 
 class NaiveBayes:
-    def __init__(self,train_X,test_X):    
-        self.labels=['low','medium','high']
+    def __init__(self,train_X,test_X,feature_attr_name,labels):    
+        self.labels=labels
         self.probabilities = {0:{},1:{}}
         self.train_X=train_X
         self.test_X=test_X
+        self.feature_attr_name=feature_attr_name
 
     def fit(self):
         self.count_0 = count(self.train_X,'gold_labels',0,0)
         self.count_1 = count(self.train_X,'gold_labels',1,1)    
-        for col in ('F1','F2','F3','F5','F6','F7','F9','F10','F11','F12'):
+        for col in self.feature_attr_name:
                 self.probabilities[0][col] = {}
                 self.probabilities[1][col] = {}
                 self.prob_0 = self.count_0/(self.count_0+self.count_1)
@@ -41,7 +42,7 @@ class NaiveBayes:
             for sentence in range(len(self.test_X[doc]['gold_labels'])):
                     self.prod_0 = self.prob_0
                     self.prod_1 = self.prob_1
-                    for feature in ('F1','F2','F3','F5','F6','F7','F9','F10','F11','F12'):
+                    for feature in self.feature_attr_name:
                         self.prod_0 *= self.probabilities[0][feature][self.test_X[doc][feature][sentence]]
                         self.prod_1 *= self.probabilities[1][feature][self.test_X[doc][feature][sentence]]
         
