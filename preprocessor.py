@@ -12,7 +12,7 @@ import json
 import pycrfsuite
 
 ANALYSIS_DATA_DIR = "analysis/"
-STOP_MIN_THRESHOLD = 3
+STOP_MIN_THRESHOLD = 2
 STOP_MAX_THRESHOLD_PERCENTAGE = 0.999
 
 def term_frequency_counter(data):
@@ -44,18 +44,20 @@ def stopword_remover(data):
         # Dibawah threshold
         if v <= STOP_MIN_THRESHOLD:
             stop_words.append(k)
-        if idx >= int(max_threshold):
-            stop_words.append(k)
+        # if idx >= int(max_threshold):
+        #     stop_words.append(k)
     stop_words = set(stop_words)
-    print(len(stop_words))
     for doc in data:
         doc["stopped_paragraphs"] = []
         for i,paragraph in enumerate(doc["paragraphs"]):
             doc["stopped_paragraphs"].append([])
             doc["stopped_paragraphs"][i] = []
             for k,sentence in enumerate(paragraph):
-                doc["stopped_paragraphs"][i].append([word for word in sentence
-                                                if word not in stop_words])
+                stopped_sentence = ["[UNK]" if word in stop_words else word for word in sentence]
+                # if len(stopped_sentence) == 0:
+                #     stopped_sentence = ["[UNK]"]
+                doc["stopped_paragraphs"][i].append(stopped_sentence)
+
     return data
     # pass
 
@@ -91,19 +93,19 @@ def word_lemmatizer(data):
                     doc["lemma_paragraphs"][i][k].append(lemmatizer(word, u"NOUN")[0])
     return data
 
-def pos_tagger(data):
+def pos_tagger(data, attr="paragraphs"):
     flatten = lambda l: [item for sublist in l for item in sublist]
     ct = CRFTagger()
     ct.set_model_file('dataset/all_indo_man_tag_corpus_model.crf.tagger')
     for category in data:
-        category['word_tag'] = []
-        for paragraph in category['paragraphs']:
+        category['word_tag_{}'.format(attr)] = []
+        for paragraph in category[attr]:
             list_tag_kalimat = []
             for kalimat in paragraph:
                 tag_kalimat = ct.tag_sents([kalimat])
                 tag_kalimat = flatten(tag_kalimat)
                 list_tag_kalimat.append(tag_kalimat)
-            category['word_tag'].append(list_tag_kalimat)
+            category['word_tag_{}'.format(attr)].append(list_tag_kalimat)
     return data
 
 def pre_processed_all(data):
@@ -113,17 +115,30 @@ def pre_processed_all(data):
     data = stopword_remover(data)
     print("\tStemmings")
     data = word_stemmer(data)
+    print("\tPos-Tagging")
+    data = pos_tagger(data, "stemmed_paragraphs")
     print("\tLemmatization")
     data = word_lemmatizer(data)
+    print("\tPos-Tagging")
+    data = pos_tagger(data, "lemma_paragraphs")
     return data
 
 def save_preprocessed_data(data, precomputed=False, file_dir="analysis/precomputed_dataset.jsonl"):
     print("Preprocessing")
     data = data if precomputed else pre_processed_all(data)
     print("Saving Preprocessed Data")
+    selected_field = ["id", "word_tag_paragraphs", "stopped_paragraphs",
+                    "stemmed_paragraphs", "word_tag_stemmed_paragraphs",
+                    "lemma_paragraphs", "word_tag_lemma_paragraphs"]
     with open(file_dir, "w") as f:
         for datum in data:
-            f.write(json.dumps(datum))
+            selected_data = {}
+            for field in selected_field:
+                if field in datum:
+                    selected_data[field] = datum[field]
+                else:
+                    selected_data[field] = []
+            f.write(json.dumps(selected_data))
             f.write("\n")
 
 def demo():

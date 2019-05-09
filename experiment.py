@@ -20,7 +20,7 @@ from datetime import timedelta
 methods_ready = ["svm"]
 LOG_FILE_NAME = "log_{}.txt"
 PRECOMP_PREPROCESSED_FILE = "analysis/precomputed_dataset.jsonl"
-FEATURE_SET_FILE = "analysis/feature_set_new_feature.jsonl"
+FEATURE_SET_FILE = "analysis/feature_set_new_stemmed_paragraphs.jsonl"
 
 log = Log()
 flatten = lambda l: [item for sublist in l for item in sublist]
@@ -50,9 +50,7 @@ def negative_sampling(matrix, label):
     return new_matrix, new_label
 
 def svm_experiment(train_data, validation_data, test_data):
-    conf = {"kernel": "rbf_kernel", "degree":2, "sigma":1, "C":100}
     # merge train and validation
-    log.write(conf)
     log.write("Preparing data training")
     # build feature matrix
     train_data = flatten([train_data, validation_data])
@@ -65,11 +63,17 @@ def svm_experiment(train_data, validation_data, test_data):
                 sentence_feature.append(doc[attr][idx])
             train_feature_matrix.append(sentence_feature)
             train_label_vector.append(flatten(doc["gold_labels"])[idx])
+
     n_data = len(train_feature_matrix)
     split_length = int(n_data/20)
-    offset = 0
-    X = train_feature_matrix
-    y = train_label_vector
+    rand_split = np.random.randint(20)
+    offset = rand_split*split_length
+    length = offset+split_length
+
+    train_feature_matrix = np.array(train_feature_matrix[offset:length])
+    train_label_vector = np.array(train_label_vector[offset:length])
+    train_feature_matrix, train_label_vector = negative_sampling(train_feature_matrix, train_label_vector)
+
     log.write("Preparing data testing")
     test_feature_matrix = []
     for doc in test_data:
@@ -78,27 +82,19 @@ def svm_experiment(train_data, validation_data, test_data):
             for attr in feature_attr_name:
                 sentence_feature.append(doc[attr][idx])
             test_feature_matrix.append(sentence_feature)
-    # predict test_data
     test_feature_matrix = np.array(test_feature_matrix)
-    all_prediction = np.zeros((len(test_feature_matrix), 2))
-    for i in range(1):
-        train_feature_matrix = np.array(X[offset:(offset+split_length)])
-        train_label_vector = np.array(y[offset:(offset+split_length)])
-        offset += split_length
-        # run_training
-        train_feature_matrix, train_label_vector = negative_sampling(train_feature_matrix, train_label_vector)
-        log.write("Training SVM")
-        svm_clf = SVM(kernel=conf["kernel"], C=conf["C"], sigma=conf["sigma"])
-        svm_clf.fit(train_feature_matrix, train_label_vector)
-        t1 = time.time()
-        log.write("Testing SVM")
-        predicted_labels, val = svm_clf.predict(test_feature_matrix)
-        t2 = time.time()
-        print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
-        predicted_labels = [1 if i>-1 else 0 for i in predicted_labels]
-        for idx, label in enumerate(predicted_labels):
-            all_prediction[idx][label] += 1
-    predicted_labels = np.argmax(all_prediction, axis=1)
+
+    log.write("Training SVM")
+    conf = {"kernel": "rbf_kernel", "degree":2, "sigma":1, "C":100}
+    log.write(conf)
+    svm_clf = SVM(kernel=conf["kernel"], C=conf["C"], sigma=conf["sigma"])
+    svm_clf.fit(train_feature_matrix, train_label_vector)
+    t1 = time.time()
+    log.write("Testing SVM")
+    predicted_labels, val = svm_clf.predict(test_feature_matrix)
+    t2 = time.time()
+    print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
+    predicted_labels = [1 if i>-1 else 0 for i in predicted_labels]
     return predicted_labels
 
 def run_experiment(train_data, validation_data, test_data, method):
@@ -214,7 +210,7 @@ def main():
     # pre_processed_data = preprocessing_data(flatten(data))
     log.write("Feature extraction...")
     feature_data = feature_extraction(flatten(data))
-    for fold in range(2,6):
+    for fold in range(1,6):
         log.write("Get fold {} of IndoSum dataset".format(fold))
         train_data, val_data, test_data = get_data(fold, feature_data)
         for method in methods_ready:
@@ -222,7 +218,6 @@ def main():
             log.write("==================================")
             log.write("Prediction using {}".format(method))
             log.write("==================================")
-
             predicted_labels = run_experiment(train_data, val_data, test_data, method)
             log.write("Acc/P/R evaluation")
             label_evaluation(test_data, predicted_labels)

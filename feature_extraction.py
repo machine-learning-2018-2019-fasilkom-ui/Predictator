@@ -70,7 +70,7 @@ def f3(s,S):
     for word in s:
         if word.isupper() or any(list(x.isupper() for x in word)):
             tot+=1
-    return tot/len(s)
+    return tot/len(s) if len(s)>0 else 0
 
 def f6(s,S):
     res = 0
@@ -96,7 +96,7 @@ def f1_extraction(data, attr_to_compute="paragraphs"):
                 res=f1(sentence,doc, attr_to_compute)
                 doc["F1"].append(res)
         max_f1 = max(doc["F1"])
-        doc["F1"] = [f1_val/max_f1 for f1_val in doc["F1"]]
+        doc["F1"] = [f1_val/max_f1 if max_f1>0 else 0 for f1_val in doc["F1"]]
     return data
 
 def f2_extraction(data, attr_to_compute="paragraphs"):
@@ -144,6 +144,7 @@ def f2_extraction(data, attr_to_compute="paragraphs"):
 def f3_extraction(data, attr_to_compute="paragraphs"):
     # Unique Formatting
     for doc in data:
+
         doc["F3"]=[]
         for paragraph in doc[attr_to_compute]:
             list_f3=[]
@@ -174,7 +175,10 @@ def f5_extraction(data, attr_to_compute="paragraphs"):
         doc_max_tf_idf = max(flatten(doc["F5"]))
         for i,paragraph in enumerate(doc[attr_to_compute]):
             for j,sentence in enumerate(paragraph):
-                doc["F5"][i][j] /= doc_max_tf_idf
+                if doc_max_tf_idf > 0:
+                    doc["F5"][i][j] /= doc_max_tf_idf
+                else:
+                    doc["F5"][i][j] = 0
         doc["F5"] = flatten(doc["F5"])
     return data
 
@@ -213,7 +217,7 @@ def f9_extraction(data, attr_to_compute="paragraphs"):
     # Must run pos_tagger() first
     for category in data:
         category['F9'] = []
-        for paragraph in category['word_tag']:
+        for paragraph in category['word_tag_{}'.format(attr_to_compute)]:
             list_score_kalimat = []
             for kalimat in paragraph:
                 tag_NNP = 0
@@ -246,7 +250,10 @@ def f10_extraction(data, attr_to_compute="paragraphs"):
 
         for i,paragraph in enumerate(doc[attr_to_compute]):
             for j,sentence in enumerate(paragraph):
-                doc["F10"][i][j] /= doc_max_tf_isf
+                if doc_max_tf_isf > 0:
+                    doc["F10"][i][j] /= doc_max_tf_isf
+                else:
+                    doc["F10"][i][j] = 0
         doc["F10"] = flatten(doc["F10"])
     return data
 
@@ -392,31 +399,33 @@ def demo():
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
     data = pre_processed_all(data)
-    print("F1")
-    data = f1_extraction(data)
-    print("F2")
-    data = f2_extraction(data)
-    print("F3")
-    data = f3_extraction(data)
-    print("F5")
-    data = f5_extraction(data)
-    print("F6")
-    data = f6_extraction(data)
-    print("F7")
-    data = f7_extraction(data)
-    print("F9")
-    data = f9_extraction(data)
-    print("F10")
-    data = f10_extraction(data)
-    print("F11")
-    data = f11_extraction(data)
-    print("F12")
-    data = f12_extraction(data)
-    print("F13")
-    data = f13_extraction(data)
-    print("F14")
-    data = f14_extraction(data)
-    save_feature(data, precomputed=True, file_dir="analysis/feature_set_new_feature.jsonl")
+    attr = ["stemmed_paragraphs", "lemma_paragraphs", "paragraphs"]
+    for i in attr:
+        print("F3")
+        data = f3_extraction(data, i)
+        print("F5")
+        data = f5_extraction(data, i)
+        print("F6")
+        data = f6_extraction(data, i)
+        print("F7")
+        data = f7_extraction(data, i)
+        print("F9")
+        data = f9_extraction(data, i)
+        print("F10")
+        data = f10_extraction(data, i)
+        print("F12")
+        data = f12_extraction(data, i)
+        print("F13")
+        data = f13_extraction(data, i)
+        print("F14")
+        data = f14_extraction(data, i)
+        print("F1")
+        data = f1_extraction(data, i)
+        print("F11")
+        data = f11_extraction(data, i)
+        print("F2")
+        data = f2_extraction(data, i)
+        save_feature(data, precomputed=True, file_dir="analysis/feature_set_new_{}.jsonl".format(i))
 
 if __name__ == "__main__":
     demo()

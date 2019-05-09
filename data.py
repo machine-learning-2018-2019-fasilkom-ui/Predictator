@@ -123,13 +123,13 @@ def fix_dataset():
             write_dataset(data, dataset, k)
 
 def demo():
-    dataset_type = list(FILENAME_FORMAT.keys())
-    fold = range(1,6)
-    for dataset in dataset_type:
-        for k in fold:
-            print("Opening dataset %s fold %i"%(dataset, k))
-            data = open_dataset(dataset, k)
-    fix_dataset()
+    # dataset_type = list(FILENAME_FORMAT.keys())
+    # fold = range(1,6)
+    # for dataset in dataset_type:
+    #     for k in fold:
+    #         print("Opening dataset %s fold %i"%(dataset, k))
+    #         data = open_dataset(dataset, k)
+    # fix_dataset()
     flatten = lambda l: [item for sublist in l for item in sublist]
     data = [open_dataset("dev", 1),open_dataset("train", 1), open_dataset("test", 1)]
     data = flatten(data)
