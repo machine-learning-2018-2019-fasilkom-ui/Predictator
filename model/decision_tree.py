@@ -15,7 +15,7 @@ class DecisionTree(object):
 
         self._root = None
         self._criterion = criterion
-        self._prune = prune
+        self.prune = prune
         self._max_depth = max_depth
         self._min_criterion = min_criterion
         self._tree = tree
@@ -26,7 +26,7 @@ class DecisionTree(object):
             self._root._grow_tree(features, target, self._criterion)
         else:
             self._root._grow_tree(features, target, 'mse')
-        self._root._prune(self._prune, self._max_depth, self._min_criterion, self._root._n_samples)
+        self._root._prune(self.prune, self._max_depth, self._min_criterion, self._root._n_samples)
 
     def predict(self, features):
         return np.array([self._root._predict(f) for f in features])
@@ -74,9 +74,9 @@ class DecisionTree(object):
         self._feature = best_feature
         self._gain = best_gain
         self._threshold = best_threshold
-        self._split_tree(features, target, criterion)
+        #self._split_tree(features, target, criterion)
 
-    def _split_tree(self, features, target, criterion):
+        # Split tree
         features_l = features[features[:, self._feature] <= self._threshold]
         target_l = target[features[:, self._feature] <= self._threshold]
         self._left = DecisionTree()
@@ -103,7 +103,7 @@ class DecisionTree(object):
             return entropy            
 
     def _prune(self, method, max_depth, min_criterion, n_samples):
-        if self.feature is None:
+        if self._feature is None:
             return
 
         self._left._prune(method, max_depth, min_criterion, n_samples)
