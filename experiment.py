@@ -194,7 +194,7 @@ def dtree_experiment(train_data, validation_data, test_data):
         dtree_clf.fit(train_feature_matrix, train_label_vector)
         t1 = time.time()
         log.write("Testing Decision Tree")
-        predicted_labels, val = svm_clf.predict(test_feature_matrix)
+        predicted_labels = dtree_clf.predict(test_feature_matrix)
         t2 = time.time()
         print('Elapsed time: {}'.format(timedelta(seconds=t2-t1)))
         predicted_labels = [1 if i>-1 else 0 for i in predicted_labels]
