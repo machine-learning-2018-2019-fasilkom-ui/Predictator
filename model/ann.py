@@ -96,10 +96,11 @@ class ANN(nn.Module):
         with torch.no_grad():
             correct = 0
             total = 0
+            b = []
             for inputs, target in data_loader:
                 inputs, target = inputs.to(device), target.to(device)
                 forward = self(inputs)
                 _, predicted = torch.max(forward.data, 1)
-
-
-            return predicted.numpy()
+                a = predicted.numpy()
+                b.append(a)
+            return b
